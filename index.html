@@ -1,0 +1,1193 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
+<title>The Things I Carry</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Karla:wght@400;500;700&family=Amiri:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;500;700&display=swap">
+<style>
+/* Layout: one full-screen dusk world drawn on canvas, a status line on top, and a story sheet anchored at the bottom. Committed single dark world. */
+:root {
+  --night: #120f2b;
+  --ink: #efe8f7;
+  --muted: #b6aecd;
+  --amber: #f2b766;
+  --gold: #e9c46a;
+  --sheet: rgba(17, 14, 38, 0.88);
+  --line: rgba(233, 196, 106, 0.22);
+  --chip: rgba(255, 255, 255, 0.06);
+  --map: #8fb8ff;
+  --ember: #ff9a5a;
+  --display: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --body: "Karla", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --track: .1em;
+  --lh: 1.5;
+  color-scheme: dark;
+}
+:root[lang="ar"] {
+  --display: "Amiri", "Geeza Pro", "Times New Roman", serif;
+  --body: "IBM Plex Sans Arabic", "Geeza Pro", "Segoe UI", Tahoma, sans-serif;
+  --track: 0;
+  --lh: 1.75;
+}
+html { box-sizing: border-box; height: 100%; background: var(--night); }
+*, *::before, *::after { box-sizing: inherit; }
+body { height: 100%; background: var(--night); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: var(--lh); overflow: hidden; -webkit-tap-highlight-color: transparent; }
+
+#app { position: relative; height: 100%; display: flex; flex-direction: column; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 12px; }
+#world { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+#hud { position: relative; z-index: 2; display: flex; flex-direction: column; gap: 8px; max-width: 560px; width: 100%; margin-inline: auto; }
+.stats { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; font-size: 12px; letter-spacing: var(--track); text-transform: uppercase; color: var(--muted); }
+.stat { display: flex; align-items: center; gap: 7px; }
+.pips { display: flex; gap: 3px; }
+.pip { width: 7px; height: 12px; border-radius: 2px; background: rgba(255,255,255,.14); transition: background .3s; }
+.pip.on { background: var(--amber); }
+.pips.pack .pip.on { background: var(--muted); }
+.pips.pack.heavy .pip.on { background: var(--ember); }
+.stat b { color: var(--ink); font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: 0; }
+.inv { display: flex; gap: 6px; flex-wrap: wrap; }
+.inv button { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line); background: rgba(17,14,38,.6); color: var(--tint, var(--gold)); display: grid; place-items: center; cursor: pointer; padding: 0; }
+.inv button svg { width: 18px; height: 18px; }
+
+.spacer { flex: 1; min-height: 120px; }
+
+#panel { position: relative; z-index: 2; max-width: 560px; width: 100%; margin-inline: auto; max-height: 56%; overflow-y: auto; cursor: default; background: var(--sheet); border: 1px solid var(--line); border-radius: 18px; padding: 20px 18px 18px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); display: flex; flex-direction: column; gap: 12px; box-shadow: 0 -10px 40px rgba(0,0,0,.35); }
+#panel.enter > * { animation: rise .5s ease both; }
+@keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+#panel p { margin: 0; color: var(--ink); }
+.eyebrow { font-size: 12px; letter-spacing: calc(var(--track) * 1.4); text-transform: uppercase; color: var(--gold) !important; }
+:root[lang="ar"] .eyebrow { font-size: 13.5px; }
+h1, h2 { font-family: var(--display); font-weight: 400; margin: 0; text-wrap: balance; line-height: 1.1; }
+h1 { font-size: clamp(44px, 12vw, 64px); }
+h2 { font-size: 32px; }
+:root[lang="ar"] h1 { font-size: clamp(40px, 11vw, 56px); line-height: 1.3; font-weight: 700; }
+:root[lang="ar"] h2 { font-size: 29px; line-height: 1.35; font-weight: 700; }
+.tagline { font-family: var(--display); font-style: italic; font-size: 21px; color: var(--muted) !important; }
+blockquote { margin: 4px 0; padding-block: 2px; padding-inline-start: 14px; border-inline-start: 2px solid var(--gold); font-family: var(--display); font-style: italic; font-size: 21px; line-height: 1.35; color: var(--ink); }
+blockquote.big { font-size: 27px; border: 0; padding: 4px 0; }
+:root[lang="ar"] .tagline, :root[lang="ar"] blockquote, :root[lang="ar"] .sign { font-style: normal; line-height: 1.7; }
+.note { font-size: 13.5px; color: var(--muted) !important; }
+.beat p, .beat blockquote { font-size: 18px; }
+.beat blockquote { font-size: 23px; }
+.next-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 4px; }
+.dots { display: flex; gap: 5px; }
+.dots span { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.18); }
+.dots span.on { background: var(--gold); }
+.next { display: inline-flex; align-items: center; gap: 4px; padding: 10px 14px 10px 18px; border-radius: 999px; border: 1px solid var(--gold); background: transparent; color: var(--gold); font: inherit; font-weight: 700; cursor: pointer; }
+.next svg { width: 18px; height: 18px; }
+:root[dir="rtl"] .next svg { transform: scaleX(-1); }
+:root[dir="rtl"] .next { padding: 10px 18px 10px 14px; }
+.chat > .bubble, .chat > .sys { animation: rise .45s ease both; }
+
+.langs { display: flex; flex-wrap: wrap; gap: 6px; }
+.langs button { padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--chip); color: var(--ink); font: inherit; font-size: 14px; cursor: pointer; }
+.langs button[lang="ar"] { font-family: "IBM Plex Sans Arabic", "Geeza Pro", Tahoma, sans-serif; }
+.langs button[lang="en"], .langs button[lang="es"] { font-family: "Karla", system-ui, sans-serif; }
+.langs button.sel { background: var(--gold); border-color: var(--gold); color: #2a1a10; font-weight: 700; }
+
+.choices { display: flex; flex-direction: column; gap: 8px; margin-top: 2px; }
+.choices:empty { display: none; }
+.choice { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: start; width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--chip); color: var(--ink); font: inherit; cursor: pointer; transition: background .2s, border-color .2s, transform .1s; }
+.choice:hover:not(:disabled) { background: rgba(233,196,106,.1); border-color: rgba(233,196,106,.45); }
+.choice:active:not(:disabled) { transform: scale(.99); }
+.choice:disabled { opacity: .42; cursor: default; }
+.choice.primary { background: var(--amber); border-color: var(--amber); color: #2a1a10; align-items: center; font-weight: 700; }
+.choice.primary:hover:not(:disabled) { background: var(--gold); }
+.c-label { font-weight: 500; }
+.c-sub { font-size: 13.5px; color: var(--muted); }
+.c-cost { font-size: 12px; color: var(--amber); font-variant-numeric: tabular-nums; unicode-bidi: plaintext; }
+.c-cost em { font-style: normal; color: var(--ember); }
+button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+.items { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.item { display: flex; gap: 10px; align-items: center; text-align: start; padding: 10px; border-radius: 12px; border: 1px solid var(--line); background: var(--chip); color: var(--ink); font: inherit; cursor: pointer; min-width: 0; }
+.item .ico { flex: none; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; color: var(--tint); background: rgba(255,255,255,.04); box-shadow: 0 0 18px -4px var(--tint); }
+.item .ico svg { width: 20px; height: 20px; }
+.item b { display: block; font-weight: 500; font-size: 14px; line-height: 1.3; }
+.item small { display: block; font-size: 12px; color: var(--muted); }
+.item.got { opacity: .5; cursor: default; }
+.item.got .ico { box-shadow: none; }
+
+.stones { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; direction: ltr; }
+.stone { height: 58px; border-radius: 12px; border: 1px solid rgba(143,184,255,.3); background: rgba(143,184,255,.06); color: var(--map); font: 600 20px var(--mono); cursor: pointer; transition: background .15s, box-shadow .15s; }
+.stone.lit { background: rgba(143,184,255,.45); color: #0e1430; box-shadow: 0 0 22px rgba(143,184,255,.6); }
+.stone.bad { background: rgba(255,154,90,.35); }
+.stone:disabled { cursor: default; }
+.puz-status { font-size: 13.5px; color: var(--muted) !important; min-height: 1.5em; }
+
+.sparks { display: flex; justify-content: space-around; gap: 8px; padding: 6px 0; }
+.spark { width: 68px; height: 68px; border-radius: 50%; border: 1px solid rgba(242,210,122,.35); background: radial-gradient(circle, rgba(242,210,122,.85) 0 14%, rgba(242,210,122,.18) 40%, transparent 70%); cursor: pointer; animation: flicker 2.4s ease-in-out infinite; }
+.spark:nth-child(2) { animation-delay: -.8s; } .spark:nth-child(3) { animation-delay: -1.6s; }
+.spark:disabled { opacity: .2; animation: none; cursor: default; }
+@keyframes flicker { 50% { transform: scale(.9); opacity: .75; } }
+
+.chat { display: flex; flex-direction: column; gap: 8px; }
+.bubble { max-width: 85%; padding: 9px 13px; border-radius: 16px; font-size: 15px; line-height: 1.45; }
+:root[lang="ar"] .bubble { line-height: 1.65; }
+.bubble.her { align-self: flex-start; background: rgba(233,196,106,.14); border: 1px solid rgba(233,196,106,.25); border-end-start-radius: 4px; }
+.bubble.me { align-self: flex-end; background: rgba(143,184,255,.14); border: 1px solid rgba(143,184,255,.25); border-end-end-radius: 4px; }
+.sys { align-self: center; font-size: 13px; color: var(--muted); text-align: center; text-wrap: balance; }
+.chat-head { font-size: 12px; letter-spacing: calc(var(--track) * 1.4); text-transform: uppercase; color: var(--muted); align-self: center; }
+
+.tally { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.tally div { padding: 10px; border-radius: 12px; background: var(--chip); border: 1px solid var(--line); text-align: center; min-width: 0; }
+.tally b { display: block; font-family: var(--display); font-size: 30px; font-weight: 400; line-height: 1; color: var(--gold); font-variant-numeric: tabular-nums; }
+.tally span { font-size: 12px; color: var(--muted); line-height: 1.3; display: block; margin-top: 4px; }
+
+.letter { font-family: var(--display); font-size: 21px; line-height: 1.45; color: var(--ink) !important; }
+:root[lang="ar"] .letter { line-height: 1.8; }
+.sign { font-family: var(--display); font-style: italic; font-size: 21px; color: var(--gold) !important; text-align: end; }
+.familiar { display: flex; flex-wrap: wrap; gap: 6px; }
+.familiar button { padding: 8px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--chip); color: var(--ink); font: inherit; font-size: 14px; cursor: pointer; }
+.familiar button.sel { background: var(--gold); color: #2a1a10; border-color: var(--gold); }
+.sendrow { display: flex; gap: 8px; align-items: stretch; }
+.sendrow input { flex: 1; min-width: 0; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: rgba(0,0,0,.25); color: var(--ink); font: inherit; font-size: 14px; }
+.sendrow button { padding: 0 14px; border-radius: 10px; border: 1px solid var(--gold); background: transparent; color: var(--gold); font: inherit; font-weight: 700; cursor: pointer; }
+
+#sheet { position: fixed; inset: 0; z-index: 5; background: rgba(5,4,14,.6); display: flex; align-items: flex-end; justify-content: center; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
+#sheet .card { max-width: 560px; width: 100%; background: #1a1636; border: 1px solid var(--line); border-radius: 18px; padding: 18px; display: flex; flex-direction: column; gap: 10px; }
+#sheet .card h3 { font-family: var(--display); font-weight: 400; font-size: 26px; margin: 0; }
+#sheet .card p { margin: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  #panel.enter > *, .spark { animation: none; }
+}
+</style>
+
+<div id="app">
+  <canvas id="world" aria-hidden="true"></canvas>
+  <header id="hud" hidden>
+    <div class="stats">
+      <span class="stat"><span id="lbEnergy"></span> <span class="pips" id="energyPips"></span></span>
+      <span class="stat"><span id="lbPack"></span> <span class="pips pack" id="packPips"></span></span>
+      <span class="stat" id="timeStat"><span id="lbTime"></span> <b id="timeVal"></b></span>
+    </div>
+    <div class="inv" id="inv"></div>
+  </header>
+  <div class="spacer"></div>
+  <section id="panel" aria-live="polite"></section>
+</div>
+<div id="sheet" hidden></div>
+
+<script>
+/* ---------- Make it yours: edit the closing note in each language ---------- */
+const CONFIG = {
+  en: { note: "There are days when I seem far away even though I'm right here. Sometimes my mind is full of things I'm trying to fix, learn, build, and become. I'm not asking you to solve them. I just want you to understand a little more of what you can't always see, and to know that, even on the difficult days, you're part of the future I'm working toward.", signoff: "With love, always" },
+  es: { note: "Hay días en que parezco lejos aunque esté aquí mismo. A veces mi mente está llena de cosas que intento arreglar, aprender, construir y llegar a ser. No te pido que las resuelvas. Solo quiero que entiendas un poco más de lo que no siempre puedes ver, y que sepas que, incluso en los días difíciles, eres parte del futuro por el que estoy trabajando.", signoff: "Con amor, siempre" },
+  ar: { note: "هناك أيام أبدو فيها بعيدًا رغم أنني هنا تمامًا. أحيانًا يمتلئ ذهني بأشياء أحاول إصلاحها وتعلّمها وبناءها، وبما أحاول أن أصبحه. لا أطلب منكِ أن تحلّيها. أريدكِ فقط أن تفهمي قليلًا مما لا تستطيعين رؤيته دائمًا، وأن تعرفي أنكِ، حتى في الأيام الصعبة، جزء من المستقبل الذي أعمل من أجله.", signoff: "بكل حب، دائمًا" }
+};
+
+/* ---------- Translations ---------- */
+const T = {
+en: {
+  title: "The Things I Carry", tagline: "Some burdens are invisible. Their weight is not.",
+  intro: "A short journey through the valley between here and there. About ten minutes. There are no wrong answers.",
+  lighter: "Talking to her gave you strength back.", oeHerTitle: "Then the thread tugs", oeHerBody: "Her voice comes through: \u201cRest a little. I'm here.\u201d You stand up sooner than you thought you could.", walkHer: "With her on the other end of the thread, the road feels shorter. +1 energy", threadT: "The one thing that gave back", threadB1: "Everything in the pack took something from you. Except one thing.", threadB2: n => `Every time you talked to her, the road got easier. Along the way, she gave you back ${n} energy.`, threadB2none: "Even when you didn't reach for it, it was there the whole way.", threadQuote: "Talking to you doesn't take time away from my journey. It's part of how I keep walking.",
+  start: "Start the journey", next: "Next", langLabel: "Language",
+  energy: "Energy", pack: "Pack", timeLeft: "Time left", cont: "Continue",
+  cost: (e, hv, t) => `−${e} energy${hv ? " <em>(heavy pack)</em>" : ""}${t ? ` · ${t} time` : ""}`,
+  plusE: n => `+${n} energy`, minusE: n => `−${n} energy`,
+  q: n => n, join: l => l.length < 2 ? l.join("") : l.slice(0, -1).join(", ") + " and " + l[l.length - 1],
+  oeEyebrow: "Out of energy", oeTitle: "You sit down on the path", oeBody: "Your legs won't take another step right now. That's allowed. You rest until you can stand again.", getUp: "Get up",
+  walkEyebrow: "On the road", walkTitle: "Walking", walk1: "The pack is light. You can feel the road under your feet.", walk2: "The pack pulls at your shoulders. You keep a steady pace.", walk3: "Every step takes a little longer than the one before.", walkNote: "A lighter pack lets you catch your breath. +1 energy",
+  itemEyebrow: (tag, w) => `${tag} · weight ${w}`, settable: "You can leave it at a resting place.", backToRoad: "Back to the road",
+  items: {
+    laptop: { name: "The Unfinished Map", tag: "Career", desc: "A glowing laptop. It shows part of the way forward, never the whole route. Learning, building, trying to become good enough to move on." },
+    lantern: { name: "The Lantern of Chances", tag: "Freelancing", desc: "Each spark is an opportunity. Some lead nowhere. Some open a new path. You can't tell which until you follow one." },
+    ember: { name: "The Ember", tag: "Coffee", desc: "A small flame you're trying to build into something. It needs attention to stay alive, and doing it beautifully doesn't promise anyone will come." },
+    thread: { name: "The Golden Thread", tag: "Us", desc: "It runs from you to someone waiting past the valley. It's the only thing in your pack that weighs nothing. It gives strength back.", fixed: "This one doesn't come off. You wouldn't want it to." },
+    clock: { name: "The Clock Without Hands", tag: "Time", desc: "It follows you everywhere. You choose what to do with the hours. You can't make more of them.", fixed: "You can't put time down." }
+  },
+  s1: "I · The Road Ahead", s1Title: "An empty backpack",
+  s1b1: "The backpack on your shoulders is empty. Far off, past the valley, there's a light. It looks like a city.",
+  s1b2: "Someone left a note on the first stone of the road.",
+  s1Quote: "I thought that if I worked hard enough, I would eventually find my way. I didn't realize how many roads I'd have to walk at the same time.",
+  startWalking: "Start walking", pickFull: "A full pack", pickTitle: "Things on the road",
+  pickIntro: "Four things lie along the road, glowing. Each one is useful. Each one has weight.",
+  inPack: "In your pack", tapPick: "Tap to pick up", keepWalking: "Keep walking",
+  clockTitle: "Something else", clockBody: "You notice something has been following you since the first step: a clock with no hands.",
+  clockNote: w => `Your pack now weighs ${w}. A pack this heavy costs extra energy on hard actions. Tap the icons at the top any time to look at what you carry.`,
+  toMountain: "Walk toward the mountain",
+  s2: "II · The Mountain of Almost", s2short: "The Mountain of Almost", s2Title: "The climb",
+  s2b1: "The mountain didn't look this tall from the road.",
+  s2b2: "The Unfinished Map flickers on. It shows the first part of a path up the rock, then a gap where the rest should be. The lantern shows other ways up, but not where they go.",
+  startClimb: "Start climbing", nextGap: "Work on the next gap", workPath: "Work on the path",
+  nextGapSub: "Another gap appeared further up the map.", workPathSub: "Solve the gap the map shows you.",
+  easy: "Take the easy path", easySub: "Slow and sure. A little progress, almost no risk.",
+  steadyT: "Steady", steadyB: "You take the switchbacks everyone takes. It's slow. It works. You're a little higher than before.",
+  spark: "Follow a spark", sparkSub: "The lantern shows three. Only one goes anywhere.",
+  stop: "Stop here for today", stopSub: "Save what's left of your energy.",
+  stillClimbing: "Still climbing", waysUp: "Ways up",
+  timeRoom: n => `The clock has room for ${n} more ${n === 1 ? "thing" : "things"} on this mountain.`,
+  mapEyebrow: "The Unfinished Map", gapTitle: n => `A gap of ${n} steps`,
+  watch: "Watch the map. Then repeat the path.", yourTurn: "Your turn.",
+  works: "It works", worksB1: "The gap closes and you climb a little higher.", worksB2: "Then the map flickers. Another gap, further up, a little longer than the last one.",
+  almost: "Almost", almostB1: "You know what the path is supposed to do. You can see the shape of the answer.", almostB2: "You just can't see how to get there yet.",
+  lanternEyebrow: "The Lantern of Chances", pickSpark: "Pick a spark", pickSparkBody: "They all look the same from here. You'll only know where one goes by following it.", back: "Back",
+  ridgeT: "A ridge you couldn't see", ridgeB1: "This one leads somewhere. The path opens onto a ridge high above where you started.", ridgeB2: "You'd never have found it from below.",
+  nowhereT: "Nowhere", nowhereB1: "You follow the spark around the shoulder of the mountain. It fades at a cliff edge.", nowhereB2: "It led nowhere. The climb still cost you.",
+  eveT: "Evening on the mountain", eveGood: "You got further up than you expected.", eveLess: "You didn't get as far as you hoped. You still got further than this morning.",
+  s2Quote: "Sometimes I understand what I need to learn. I just can't always see the solution yet. Knowing what to do and knowing how to do it are different things.",
+  sparkAria: i => `Spark ${i}`,
+  thread: "Along the thread", msgArrives: "A message arrives", whatDo: "What does the traveler do?",
+  m1q: "Are you okay? You seem distant today.",
+  m1a: "Say “I'm fine.”", m1aSub: "Quick. Nothing to explain.", m1aMe: "I'm fine.", m1aHer: "Okay.", m1aSys: "The conversation ends quickly. She's left to guess what's wrong.",
+  m1b: "Explain what's happening", m1bSub: "It takes effort to find the words.", m1bMe: "Not really. I spent today stuck on something I almost understand, and I keep thinking about work that might not come. It's not you. My head is just full.", m1bHer: "Thank you for telling me. I didn't know it was that much.", m1bSys: "She has context now, and can answer with understanding.",
+  m1c: "Ask to talk after a short rest", m1cSub: "Time to gather your thoughts. A promise to keep.", m1cMe: "Can I call you in a bit? I want to explain properly. I just need a minute to clear my head.", m1cHer: "Okay. I'll be here.", m1cSys: "You'll need to follow through.",
+  toShelter: "Go to the resting place",
+  m2q: "You went quiet again. Did I do something?",
+  m2p: "Keep your promise: call her now", m2pSub: "You said you would.", m2pMe: "No, never. I said I'd explain, so here it is. The mountain took everything today and the workshop was empty. I'm tired, but I'm here.", m2pHer: "I'm glad you called. Thank you for coming back to it.", m2pSys: "You followed through. That's what made the promise worth something.",
+  m2b: "Tell her it isn't her, and why", m2bSub: "Harder than one word. Clearer, too.", m2bMe: "It's not you at all. The workshop had no one today and I'm tired of trying so hard for so little. I'm still here though.", m2bHer: "I'm here too. Tell me more when you can.", m2bSys: "She doesn't have to wonder whether it's about her.",
+  m2a: "Say “No, it's nothing.”", m2aSub: "Saves energy for the road.", m2aMe: "No, it's nothing.", m2aHer: "...okay.", m2aSys: "“Nothing” doesn't tell her it isn't her.", m2aPromise: "The call you promised earlier didn't happen.",
+  shEyebrow: "A resting place", shTitle: "The shelter",
+  shB1: "A small stone shelter beside the road. You can do one thing here before you go on.",
+  shB2: "Leave something, take something back, or simply stop. Nothing left here is lost.",
+  shNote: "The thread and the clock don't come off.",
+  setDown: n => `Set down ${n}`, pickUp: n => `Pick up ${n}`, waited: "It waited for you.",
+  packMinus: w => `pack −${w}`, packPlus: w => `pack +${w}`,
+  hint: { laptop: "Hard actions get cheaper. The map's paths stay here with it.", lantern: "Less to keep lit. Fewer chances to chase.", ember: "More energy for the road. The workshop will have to wait." },
+  setDownDone: n => `You set ${n} down inside the shelter. It will be safe here, and it will still be yours when you come back for it.`,
+  pickUpDone: n => `You lift ${n} back into the pack. It was right where you left it.`,
+  rest: "Rest a while", restSub: "Keep everything, but catch your breath first.", restDone: "You sit with your back against the stone until your breathing slows.",
+  hold: "Hold the thread", holdSub: "Pause the journey to reconnect.", holdCost: "+2 energy · the thread glows brighter",
+  holdDone: "You hold the thread. From the other end, her voice: \u201cTell me about your day.\u201d You do. Somehow the pack feels lighter.",
+  backOnRoad: "Back on the road",
+  s3: "III · The Workshop in the Rain", s3short: "The Workshop in the Rain", s3Title: "A small workshop",
+  s3b1: "It starts to rain. By the road there's a little workshop: a counter, a grinder, a sign you painted yourself.",
+  s3bEmber: "The Ember warms in your pack. You could make something good here.",
+  s3bNoEmber: "The Ember is back in the shelter. The workshop is cold, but the door is open.",
+  s3b3: "The shelves are low on supplies. Nobody has come in yet.", goInside: "Go inside",
+  improve: "Improve what you make", improveSub: "Pour yourself into the craft.", improveNo: "The Ember is in the shelter.",
+  craftT1: "Something you're proud of", craftT2: "Better still", craftB1: "You work until it's right: the grind, the heat, the timing.", craftB2: "You could stand behind this anywhere.", craftRain: "The rain keeps falling. The street is still empty.",
+  customers: "Look for customers", customersSub: "Stand in the rain and call people in.",
+  hitT: "Someone stops", hitB1: "Someone ducks in out of the rain. They try it, smile, and buy one.", hitB2: "It isn't enough yet. It is real.",
+  missT: "Umbrellas go by", missB1: "You stand under the awning and call out to people passing.", missB2: "Nobody stops today. You did everything right and the street stayed empty.",
+  leave: "Leave and make progress elsewhere", leaveSub: "The workshop will still be here.", leaveCost: "uses the rest of the day",
+  leaveT: "The door clicks shut", leaveB: "You pull the door closed and head back to the road. You'll come back with more than you have now.",
+  leftToday: n => n === 2 ? "Two things left today" : "One thing left today", twoNotThree: "There's time for two of these, not all three.",
+  closingT: "Closing up", came: n => n === 0 ? "Nobody came in today." : n === 1 ? "One person came in today." : `${n} people came in today.`,
+  s3Quote: "I can give something my best and still not get the result I need. Sometimes the work isn't the only challenge. It's finding a way to make the work sustainable.",
+  s4: "IV · The Bridge of Two Skies", s4short: "The Bridge of Two Skies", s4Title: "The bridge",
+  s4b1: "A bridge over a deep valley. On the far side, someone is holding the other end of the thread.",
+  s4bLantern: "Behind you, the lantern is flickering. The path you found on the mountain is starting to close.",
+  s4bNoLantern: "Behind you, the path you found on the mountain is starting to close.",
+  s4b3: "You can't do both right now.",
+  work: "Keep working", workSub: "Save the path while you still can.",
+  cross: "Cross the bridge now", crossSub: "Go to her. Let the path go.",
+  msg: "Send a message and agree on a time", msgSub: "Say what's happening. Make a plan you'll keep.",
+  workT: "You stay", workB1: "You turn back and work until the path holds and the lantern steadies.", workB2: "Across the bridge, she waits. The thread doesn't break. But she doesn't know why you didn't come.",
+  crossT: "You cross", crossB1: "For a while, the valley is quiet and you're not carrying anything at all.", crossB2: "Behind you, the lantern goes dark and the path closes. There will be other paths. Not this one.",
+  msgT: "You tell her", msgB1: "You send: “The lantern's fading and I need to finish this. Can we meet at the top of the hill tonight? I'll be there.”", msgB2: "She answers: “I'll be there.”", msgB3: "The lantern holds just long enough.",
+  s4Quote: "When my mind is full, I may have less to give in a moment than I wish I could. That doesn't mean you matter less. But I still need to tell you what is happening instead of leaving you to guess.",
+  toHill: "Walk to the last hill",
+  s5: "V · The Light Beyond the Valley", s5short: "The Light Beyond the Valley", s5Title: "The hill",
+  s5b1: "The valley opens below you. The city is closer than it looked from the road.",
+  s5All: "You carried everything the whole way.",
+  s5Carry: (c, l, J) => `${c.length ? `You're carrying ${J(c)}.` : "You're carrying only the thread and the clock."} ${J(l)} ${l.length > 1 ? "are" : "is"} waiting in the shelter.`,
+  s5Msg: "Someone is already at the top, exactly when you said you'd meet.", s5Cross: "She walked the last stretch with you.", s5Work: "You're alone at the top. The thread is still there, running back across the valley.",
+  lookOut: "Look out at the light",
+  endingEyebrow: k => `Ending ${k}`, madeIt: "You made it to the hill. That took real effort, however you got here.",
+  endings: {
+    A: { name: "Still Carrying", body: ["You arrived carrying almost everything.", "Determination brought you all this way. Trying to do everything without stopping also made every step heavier than it had to be."] },
+    B: { name: "The Things We Can Set Down", body: ["You chose what needed you now and what could wait.", "What you left behind wasn't abandoned. Putting something down for a while isn't the same as giving up on it."] },
+    C: { name: "The Road We Share", body: ["You said what was happening instead of leaving her to guess, and you made room for her on the way.", "She didn't carry your pack. Being understood made the road feel lighter, even with the same weight on your back."] }
+  },
+  tally1: "steps forward on the path", tally2: "times you said what was happening", tally3: "times you set something down or rested",
+  readLast: "Read the last line",
+  finalQuote: "I don't need you to carry my backpack for me. I want you to understand why the road sometimes feels heavy, and why I keep walking anyway.",
+  oneMore: "One more thing", forYou: "For you", familiarQ: "Which scene felt most familiar?", tellMe: "Tell me which one, and why. I'd like to hear it.",
+  sendMsg: n => `“${n}” felt the most familiar. Can we talk about it?`,
+  copy: "Copy", copied: "Copied", selected: "Selected", again: "Walk it again", msgAria: "Message to send"
+},
+
+es: {
+  title: "Las cosas que cargo", tagline: "Algunas cargas son invisibles. Su peso, no.",
+  intro: "Un viaje corto por el valle entre aquí y allá. Unos diez minutos. No hay respuestas equivocadas.",
+  lighter: "Hablar con ella te devolvió fuerzas.", oeHerTitle: "Entonces el hilo se mueve", oeHerBody: "Llega su voz: «Descansa un poco. Aquí estoy.» Te levantas antes de lo que creías posible.", walkHer: "Con ella del otro lado del hilo, el camino se siente más corto. +1 de energía", threadT: "Lo único que devolvía", threadB1: "Todo lo que había en la mochila te quitaba algo. Menos una cosa.", threadB2: n => `Cada vez que hablaste con ella, el camino se hizo más fácil. En el trayecto te devolvió ${n} de energía.`, threadB2none: "Aunque no lo buscaras, estuvo ahí todo el camino.", threadQuote: "Hablar contigo no le quita tiempo a mi camino. Es parte de lo que me hace seguir caminando.",
+  start: "Comenzar el viaje", next: "Siguiente", langLabel: "Idioma",
+  energy: "Energía", pack: "Mochila", timeLeft: "Tiempo", cont: "Continuar",
+  cost: (e, hv, t) => `−${e} de energía${hv ? " <em>(mochila pesada)</em>" : ""}${t ? ` · ${t} de tiempo` : ""}`,
+  plusE: n => `+${n} de energía`, minusE: n => `−${n} de energía`,
+  q: n => `«${n}»`, join: l => l.length < 2 ? l.join("") : l.slice(0, -1).join(", ") + " y " + l[l.length - 1],
+  oeEyebrow: "Sin energía", oeTitle: "Te sientas en el camino", oeBody: "Tus piernas no dan un paso más por ahora. Está bien. Descansas hasta que puedes levantarte otra vez.", getUp: "Levantarte",
+  walkEyebrow: "En el camino", walkTitle: "Caminando", walk1: "La mochila es ligera. Sientes el camino bajo tus pies.", walk2: "La mochila te jala de los hombros. Mantienes el paso.", walk3: "Cada paso tarda un poco más que el anterior.", walkNote: "Con una mochila más ligera recuperas el aliento. +1 de energía",
+  itemEyebrow: (tag, w) => `${tag} · peso ${w}`, settable: "Puedes dejarlo en un lugar de descanso.", backToRoad: "Volver al camino",
+  items: {
+    laptop: { name: "El mapa inconcluso", tag: "Carrera", desc: "Una laptop que brilla. Muestra parte del camino, nunca la ruta completa. Aprender, construir, intentar ser lo bastante bueno para avanzar." },
+    lantern: { name: "La linterna de oportunidades", tag: "Freelance", desc: "Cada chispa es una oportunidad. Algunas no llevan a ningún lado. Otras abren un camino nuevo. No sabes cuál hasta que la sigues." },
+    ember: { name: "La brasa", tag: "Café", desc: "Una pequeña llama que intentas convertir en algo. Necesita atención para seguir viva, y hacerlo bonito no garantiza que alguien vaya a llegar." },
+    thread: { name: "El hilo dorado", tag: "Nosotros", desc: "Va de ti hasta alguien que espera al otro lado del valle. Es lo único en tu mochila que no pesa. Al contrario: te devuelve fuerzas.", fixed: "Este no se quita. Y no querrías quitártelo." },
+    clock: { name: "El reloj sin manecillas", tag: "Tiempo", desc: "Te sigue a todas partes. Tú decides qué hacer con las horas. No puedes hacer más.", fixed: "El tiempo no se puede dejar." }
+  },
+  s1: "I · El camino por delante", s1Title: "Una mochila vacía",
+  s1b1: "La mochila en tus hombros está vacía. A lo lejos, más allá del valle, hay una luz. Parece una ciudad.",
+  s1b2: "Alguien dejó una nota en la primera piedra del camino.",
+  s1Quote: "Pensé que si trabajaba lo suficiente, al final encontraría mi camino. No me di cuenta de cuántos caminos tendría que recorrer al mismo tiempo.",
+  startWalking: "Empezar a caminar", pickFull: "Una mochila llena", pickTitle: "Cosas en el camino",
+  pickIntro: "Hay cuatro cosas brillando a lo largo del camino. Cada una sirve. Cada una pesa.",
+  inPack: "En tu mochila", tapPick: "Toca para recoger", keepWalking: "Seguir caminando",
+  clockTitle: "Algo más", clockBody: "Te das cuenta de que algo te sigue desde el primer paso: un reloj sin manecillas.",
+  clockNote: w => `Tu mochila ahora pesa ${w}. Con tanto peso, las acciones difíciles cuestan energía extra. Toca los íconos de arriba cuando quieras para ver lo que cargas.`,
+  toMountain: "Caminar hacia la montaña",
+  s2: "II · La montaña del casi", s2short: "La montaña del casi", s2Title: "La subida",
+  s2b1: "Desde el camino, la montaña no se veía tan alta.",
+  s2b2: "El mapa inconcluso se enciende. Muestra la primera parte de un sendero entre las rocas y luego un hueco donde debería estar el resto. La linterna muestra otras subidas, pero no adónde llevan.",
+  startClimb: "Empezar a subir", nextGap: "Resolver el siguiente hueco", workPath: "Trabajar en el sendero",
+  nextGapSub: "Apareció otro hueco más arriba en el mapa.", workPathSub: "Resuelve el hueco que te muestra el mapa.",
+  easy: "Tomar el camino fácil", easySub: "Lento y seguro. Un poco de avance, casi sin riesgo.",
+  steadyT: "Paso a paso", steadyB: "Tomas las curvas que toma todo el mundo. Es lento. Funciona. Estás un poco más alto que antes.",
+  spark: "Seguir una chispa", sparkSub: "La linterna muestra tres. Solo una lleva a algún lado.",
+  stop: "Parar aquí por hoy", stopSub: "Guarda la energía que te queda.",
+  stillClimbing: "Sigues subiendo", waysUp: "Caminos hacia arriba",
+  timeRoom: n => `Al reloj le queda espacio para ${n} ${n === 1 ? "cosa" : "cosas"} más en esta montaña.`,
+  mapEyebrow: "El mapa inconcluso", gapTitle: n => `Un hueco de ${n} pasos`,
+  watch: "Mira el mapa. Luego repite el camino.", yourTurn: "Tu turno.",
+  works: "Funciona", worksB1: "El hueco se cierra y subes un poco más.", worksB2: "Luego el mapa parpadea. Otro hueco, más arriba, un poco más largo que el anterior.",
+  almost: "Casi", almostB1: "Sabes lo que el sendero tiene que hacer. Ves la forma de la respuesta.", almostB2: "Todavía no ves cómo llegar a ella.",
+  lanternEyebrow: "La linterna de oportunidades", pickSpark: "Elige una chispa", pickSparkBody: "Desde aquí todas se ven iguales. Solo sabrás adónde lleva una si la sigues.", back: "Volver",
+  ridgeT: "Una cresta que no veías", ridgeB1: "Esta sí lleva a algún lado. El sendero se abre a una cresta muy por encima de donde empezaste.", ridgeB2: "Desde abajo nunca la habrías encontrado.",
+  nowhereT: "A ningún lado", nowhereB1: "Sigues la chispa alrededor de la montaña. Se apaga al borde de un precipicio.", nowhereB2: "No llevaba a ningún lado. Igual te costó la subida.",
+  eveT: "Anochece en la montaña", eveGood: "Llegaste más alto de lo que esperabas.", eveLess: "No llegaste tan lejos como querías. Aun así, llegaste más lejos que esta mañana.",
+  s2Quote: "A veces entiendo lo que necesito aprender. Solo que todavía no veo la solución. Saber qué hacer y saber cómo hacerlo son cosas distintas.",
+  sparkAria: i => `Chispa ${i}`,
+  thread: "A lo largo del hilo", msgArrives: "Llega un mensaje", whatDo: "¿Qué hace el viajero?",
+  m1q: "¿Estás bien? Te siento distante hoy.",
+  m1a: "Decir «Estoy bien.»", m1aSub: "Rápido. Nada que explicar.", m1aMe: "Estoy bien.", m1aHer: "Ok.", m1aSys: "La conversación termina rápido. Ella se queda adivinando qué pasa.",
+  m1b: "Explicarle lo que está pasando", m1bSub: "Cuesta encontrar las palabras.", m1bMe: "La verdad, no mucho. Hoy me atoré con algo que casi entiendo, y no dejo de pensar en trabajo que quizá no llegue. No es por ti. Solo traigo la cabeza llena.", m1bHer: "Gracias por decírmelo. No sabía que era tanto.", m1bSys: "Ahora ella tiene contexto y puede responder con comprensión.",
+  m1c: "Pedir hablar después de descansar un poco", m1cSub: "Tiempo para ordenar tus ideas. Una promesa que cumplir.", m1cMe: "¿Te puedo llamar en un rato? Quiero explicártelo bien. Solo necesito un momento para despejarme.", m1cHer: "Está bien. Aquí voy a estar.", m1cSys: "Vas a tener que cumplirlo.",
+  toShelter: "Ir al lugar de descanso",
+  m2q: "Otra vez te quedaste callado. ¿Hice algo?",
+  m2p: "Cumplir tu promesa: llamarla ahora", m2pSub: "Dijiste que lo harías.", m2pMe: "No, para nada. Te dije que te iba a explicar, así que aquí va. La montaña me quitó todo hoy y el taller estuvo vacío. Estoy cansado, pero aquí estoy.", m2pHer: "Me alegra que me llamaras. Gracias por volver a eso.", m2pSys: "Cumpliste. Eso es lo que le dio valor a la promesa.",
+  m2b: "Decirle que no es por ella, y por qué", m2bSub: "Más difícil que una palabra. También más claro.", m2bMe: "No es por ti, para nada. Hoy nadie llegó al taller y estoy cansado de esforzarme tanto para tan poco. Pero aquí sigo.", m2bHer: "Yo también aquí sigo. Cuéntame más cuando puedas.", m2bSys: "Ella no tiene que preguntarse si es por ella.",
+  m2a: "Decir «No, no es nada.»", m2aSub: "Ahorra energía para el camino.", m2aMe: "No, no es nada.", m2aHer: "...ok.", m2aSys: "«Nada» no le dice que no es por ella.", m2aPromise: "La llamada que prometiste no sucedió.",
+  shEyebrow: "Un lugar de descanso", shTitle: "El refugio",
+  shB1: "Un pequeño refugio de piedra junto al camino. Puedes hacer una cosa aquí antes de seguir.",
+  shB2: "Deja algo, recupera algo o simplemente detente. Nada de lo que dejes aquí se pierde.",
+  shNote: "El hilo y el reloj no se quitan.",
+  setDown: n => `Dejar aquí ${n}`, pickUp: n => `Recoger ${n}`, waited: "Te esperó.",
+  packMinus: w => `mochila −${w}`, packPlus: w => `mochila +${w}`,
+  hint: { laptop: "Las acciones difíciles cuestan menos. Los senderos del mapa se quedan aquí con él.", lantern: "Menos que mantener encendido. Menos oportunidades que perseguir.", ember: "Más energía para el camino. El taller tendrá que esperar." },
+  setDownDone: n => `Dejas ${n} dentro del refugio. Aquí estará a salvo, y seguirá siendo tuyo cuando vuelvas por él.`,
+  pickUpDone: n => `Vuelves a meter ${n} en la mochila. Estaba justo donde lo dejaste.`,
+  rest: "Descansar un rato", restSub: "Quédate con todo, pero recupera el aliento primero.", restDone: "Te sientas con la espalda contra la piedra hasta que tu respiración se calma.",
+  hold: "Sostener el hilo", holdSub: "Pausar el viaje para reconectar.", holdCost: "+2 de energía · el hilo brilla más",
+  holdDone: "Sostienes el hilo. Del otro lado, ella contesta: «Cuéntame de tu día.» Se lo cuentas. Sin saber cómo, la mochila pesa menos.",
+  backOnRoad: "De vuelta al camino",
+  s3: "III · El taller bajo la lluvia", s3short: "El taller bajo la lluvia", s3Title: "Un pequeño taller",
+  s3b1: "Empieza a llover. Junto al camino hay un tallercito: un mostrador, un molino y un letrero que pintaste tú mismo.",
+  s3bEmber: "La brasa se calienta en tu mochila. Aquí podrías hacer algo bueno.",
+  s3bNoEmber: "La brasa se quedó en el refugio. El taller está frío, pero la puerta está abierta.",
+  s3b3: "Quedan pocos insumos en los estantes. Todavía no ha entrado nadie.", goInside: "Entrar",
+  improve: "Mejorar lo que haces", improveSub: "Ponerle todo al oficio.", improveNo: "La brasa está en el refugio.",
+  craftT1: "Algo de lo que estás orgulloso", craftT2: "Todavía mejor", craftB1: "Trabajas hasta que queda bien: la molienda, el calor, el tiempo.", craftB2: "Podrías defender esto en cualquier lugar.", craftRain: "Sigue lloviendo. La calle sigue vacía.",
+  customers: "Buscar clientes", customersSub: "Pararte bajo la lluvia e invitar a la gente a pasar.",
+  hitT: "Alguien se detiene", hitB1: "Alguien entra para cubrirse de la lluvia. Lo prueba, sonríe y compra uno.", hitB2: "Todavía no es suficiente. Pero es real.",
+  missT: "Pasan los paraguas", missB1: "Te paras bajo el toldo y llamas a la gente que pasa.", missB2: "Hoy nadie se detiene. Hiciste todo bien y la calle siguió vacía.",
+  leave: "Irte y avanzar en otra parte", leaveSub: "El taller seguirá aquí.", leaveCost: "usa lo que queda del día",
+  leaveT: "La puerta se cierra", leaveB: "Cierras la puerta y vuelves al camino. Regresarás con más de lo que tienes ahora.",
+  leftToday: n => n === 2 ? "Te quedan dos cosas hoy" : "Te queda una cosa hoy", twoNotThree: "Hay tiempo para dos de estas, no para las tres.",
+  closingT: "Cerrando", came: n => n === 0 ? "Hoy no entró nadie." : n === 1 ? "Hoy entró una persona." : `Hoy entraron ${n} personas.`,
+  s3Quote: "Puedo dar lo mejor de mí y aun así no obtener el resultado que necesito. A veces el reto no es solo el trabajo. Es encontrar la forma de que el trabajo sea sostenible.",
+  s4: "IV · El puente de dos cielos", s4short: "El puente de dos cielos", s4Title: "El puente",
+  s4b1: "Un puente sobre un valle profundo. Del otro lado, alguien sostiene el otro extremo del hilo.",
+  s4bLantern: "Detrás de ti, la linterna parpadea. El sendero que encontraste en la montaña empieza a cerrarse.",
+  s4bNoLantern: "Detrás de ti, el sendero que encontraste en la montaña empieza a cerrarse.",
+  s4b3: "Ahora mismo no puedes hacer las dos cosas.",
+  work: "Seguir trabajando", workSub: "Salvar el sendero mientras todavía puedes.",
+  cross: "Cruzar el puente ahora", crossSub: "Ir con ella. Dejar ir el sendero.",
+  msg: "Mandarle un mensaje y acordar una hora", msgSub: "Decirle lo que está pasando. Hacer un plan que vas a cumplir.",
+  workT: "Te quedas", workB1: "Te das la vuelta y trabajas hasta que el sendero aguanta y la linterna se estabiliza.", workB2: "Del otro lado del puente, ella espera. El hilo no se rompe. Pero ella no sabe por qué no llegaste.",
+  crossT: "Cruzas", crossB1: "Por un rato, el valle está en calma y no cargas nada.", crossB2: "Detrás de ti, la linterna se apaga y el sendero se cierra. Habrá otros senderos. Este no.",
+  msgT: "Le cuentas", msgB1: "Le mandas: «La linterna se está apagando y necesito terminar esto. ¿Nos vemos en la cima de la colina esta noche? Ahí voy a estar.»", msgB2: "Ella responde: «Ahí voy a estar.»", msgB3: "La linterna aguanta justo lo suficiente.",
+  s4Quote: "Cuando tengo la mente llena, a veces tengo menos para dar en un momento de lo que quisiera. Eso no significa que me importes menos. Pero aun así tengo que decirte lo que está pasando en lugar de dejarte adivinando.",
+  toHill: "Caminar a la última colina",
+  s5: "V · La luz más allá del valle", s5short: "La luz más allá del valle", s5Title: "La colina",
+  s5b1: "El valle se abre debajo de ti. La ciudad está más cerca de lo que parecía desde el camino.",
+  s5All: "Cargaste todo durante todo el camino.",
+  s5Carry: (c, l, J) => `${c.length ? `Cargas ${J(c)}.` : "Solo cargas el hilo y el reloj."} En el refugio te ${l.length > 1 ? "esperan" : "espera"} ${J(l)}.`,
+  s5Msg: "Alguien ya está en la cima, justo a la hora en que dijiste que se verían.", s5Cross: "Ella caminó contigo el último tramo.", s5Work: "Estás solo en la cima. El hilo sigue ahí, cruzando de vuelta el valle.",
+  lookOut: "Mirar la luz",
+  endingEyebrow: k => `Final ${k}`, madeIt: "Llegaste a la colina. Eso costó esfuerzo de verdad, sin importar cómo llegaste.",
+  endings: {
+    A: { name: "Todavía cargando", body: ["Llegaste cargando casi todo.", "La determinación te trajo hasta aquí. Intentar hacerlo todo sin parar también hizo cada paso más pesado de lo necesario."] },
+    B: { name: "Las cosas que podemos dejar", body: ["Elegiste qué te necesitaba ahora y qué podía esperar.", "Lo que dejaste atrás no quedó abandonado. Dejar algo por un tiempo no es lo mismo que rendirse."] },
+    C: { name: "El camino que compartimos", body: ["Dijiste lo que estaba pasando en lugar de dejarla adivinando, y le hiciste espacio en el camino.", "Ella no cargó tu mochila. Sentirte comprendido hizo que el camino se sintiera más ligero, aunque el peso era el mismo."] }
+  },
+  tally1: "pasos adelante en el sendero", tally2: "veces que dijiste lo que pasaba", tally3: "veces que dejaste algo o descansaste",
+  readLast: "Leer la última línea",
+  finalQuote: "No necesito que cargues mi mochila por mí. Quiero que entiendas por qué a veces el camino se siente pesado, y por qué sigo caminando de todos modos.",
+  oneMore: "Una cosa más", forYou: "Para ti", familiarQ: "¿Qué escena se te hizo más familiar?", tellMe: "Dime cuál y por qué. Me gustaría escucharlo.",
+  sendMsg: n => `«${n}» fue la que se me hizo más familiar. ¿Podemos hablar de eso?`,
+  copy: "Copiar", copied: "Copiado", selected: "Seleccionado", again: "Recorrerlo otra vez", msgAria: "Mensaje para enviar"
+},
+
+ar: {
+  title: "الأشياء التي أحملها", tagline: "بعض الأعباء لا تُرى، لكن ثقلها يُحَسّ.",
+  intro: "رحلة قصيرة عبر الوادي بين هنا وهناك. نحو عشر دقائق. لا توجد إجابات خاطئة.",
+  lighter: "الحديث معها أعاد إليك قوتك.", oeHerTitle: "ثم يتحرّك الخيط", oeHerBody: "يصلك صوتها: «ارتح قليلًا. أنا هنا.» فتنهض أسرع مما ظننت أنك تستطيع.", walkHer: "ومعها على الطرف الآخر من الخيط، يبدو الطريق أقصر. +1 طاقة", threadT: "الشيء الوحيد الذي كان يعطي", threadB1: "كل ما في الحقيبة كان يأخذ منك شيئًا، إلا شيئًا واحدًا.", threadB2: n => `في كل مرة تحدّثت فيها إليها، صار الطريق أسهل. وعلى امتداده أعادت إليك ${n} من الطاقة.`, threadB2none: "حتى حين لم تمدّ يدك إليه، كان هناك طوال الطريق.", threadQuote: "الحديث معكِ لا يأخذ من وقت رحلتي. إنه جزء مما يجعلني أواصل المشي.",
+  start: "بدء الرحلة", next: "التالي", langLabel: "اللغة",
+  energy: "الطاقة", pack: "الحقيبة", timeLeft: "الوقت", cont: "متابعة",
+  cost: (e, hv, t) => `−${e} طاقة${hv ? " <em>(حقيبة ثقيلة)</em>" : ""}${t ? ` · ${t} وقت` : ""}`,
+  plusE: n => `+${n} طاقة`, minusE: n => `−${n} طاقة`,
+  q: n => `«${n}»`, join: l => l.length < 2 ? l.join("") : l.slice(0, -1).join("، ") + " و" + l[l.length - 1],
+  oeEyebrow: "نفدت الطاقة", oeTitle: "تجلس على الطريق", oeBody: "قدماك لا تقويان على خطوة أخرى الآن، ولا بأس في ذلك. ترتاح حتى تستطيع النهوض من جديد.", getUp: "النهوض",
+  walkEyebrow: "على الطريق", walkTitle: "السير", walk1: "الحقيبة خفيفة. تشعر بالطريق تحت قدميك.", walk2: "الحقيبة تشدّ كتفيك، وأنت تحافظ على خطوتك.", walk3: "كل خطوة تأخذ وقتًا أطول قليلًا من التي قبلها.", walkNote: "الحقيبة الأخف تمنحك فرصة لالتقاط أنفاسك. ‎+1 طاقة",
+  itemEyebrow: (tag, w) => `${tag} · الوزن ${w}`, settable: "يمكن تركه في مكان استراحة.", backToRoad: "العودة إلى الطريق",
+  items: {
+    laptop: { name: "الخريطة الناقصة", tag: "المسيرة المهنية", desc: "حاسوب محمول مضيء. يُظهر جزءًا من الطريق إلى الأمام، ولا يُظهر المسار كاملًا أبدًا. التعلّم، والبناء، ومحاولة أن تصبح جيدًا بما يكفي لتتقدّم." },
+    lantern: { name: "فانوس الفرص", tag: "العمل الحر", desc: "كل شرارة فرصة. بعضها لا يقود إلى شيء، وبعضها يفتح طريقًا جديدًا. ولا تعرف أيّها حتى تتبعها." },
+    ember: { name: "الجمرة", tag: "القهوة", desc: "شعلة صغيرة تحاول أن تبني منها شيئًا. تحتاج إلى عناية لتبقى حيّة، وإتقانها لا يضمن أن يأتي أحد." },
+    thread: { name: "الخيط الذهبي", tag: "نحن", desc: "يمتدّ منك إلى شخص ينتظر خلف الوادي. إنه الشيء الوحيد في حقيبتك الذي لا وزن له، بل يعيد إليك قوتك.", fixed: "هذا لا يُنزع، ولن ترغب في نزعه." },
+    clock: { name: "الساعة بلا عقارب", tag: "الوقت", desc: "تتبعك أينما ذهبت. أنت تختار ما تفعله بالساعات، لكنك لا تستطيع أن تصنع المزيد منها.", fixed: "لا يمكن وضع الوقت جانبًا." }
+  },
+  s1: "الأول · الطريق أمامك", s1Title: "حقيبة فارغة",
+  s1b1: "الحقيبة على كتفيك فارغة. بعيدًا، خلف الوادي، هناك ضوء. يبدو كأنه مدينة.",
+  s1b2: "ترك أحدهم رسالة على أول حجر في الطريق.",
+  s1Quote: "ظننت أنني إن عملت بجدّ كافٍ سأجد طريقي في النهاية. لم أدرك كم طريقًا سأضطر إلى سلوكه في الوقت نفسه.",
+  startWalking: "بدء المشي", pickFull: "حقيبة ممتلئة", pickTitle: "أشياء على الطريق",
+  pickIntro: "أربعة أشياء متوهجة على امتداد الطريق. كلٌّ منها مفيد، ولكلٍّ منها ثقل.",
+  inPack: "في الحقيبة", tapPick: "المس للالتقاط", keepWalking: "مواصلة السير",
+  clockTitle: "شيء آخر", clockBody: "تلاحظ أن شيئًا يتبعك منذ الخطوة الأولى: ساعة بلا عقارب.",
+  clockNote: w => `وزن حقيبتك الآن ${w}. الحقيبة بهذا الثقل تكلّف طاقة إضافية في الأفعال الصعبة. يمكن لمس الأيقونات في الأعلى في أي وقت لرؤية ما تحمله.`,
+  toMountain: "السير نحو الجبل",
+  s2: "الثاني · جبل «تقريبًا»", s2short: "جبل «تقريبًا»", s2Title: "الصعود",
+  s2b1: "لم يبدُ الجبل بهذا الارتفاع من الطريق.",
+  s2b2: "تضيء الخريطة الناقصة. تُظهر الجزء الأول من ممرّ بين الصخور، ثم فجوة حيث يجب أن يكون الباقي. ويُظهر الفانوس طرقًا أخرى للصعود، لكن ليس إلى أين تؤدي.",
+  startClimb: "بدء الصعود", nextGap: "حلّ الفجوة التالية", workPath: "العمل على الممر",
+  nextGapSub: "ظهرت فجوة أخرى أعلى في الخريطة.", workPathSub: "حلّ الفجوة التي تُظهرها الخريطة.",
+  easy: "سلوك الطريق السهل", easySub: "بطيء ومضمون. تقدّم قليل، وتقريبًا بلا مخاطرة.",
+  steadyT: "بثبات", steadyB: "تسلك المنعطفات التي يسلكها الجميع. إنه بطيء، لكنه ينجح. أنت الآن أعلى قليلًا من قبل.",
+  spark: "اتّباع شرارة", sparkSub: "يُظهر الفانوس ثلاثًا. واحدة فقط تقود إلى مكان ما.",
+  stop: "التوقف هنا لهذا اليوم", stopSub: "الاحتفاظ بما تبقّى من الطاقة.",
+  stillClimbing: "ما زلت تصعد", waysUp: "طرق إلى الأعلى",
+  timeRoom: n => n === 1 ? "بقي في الساعة متّسع لشيء واحد آخر على هذا الجبل." : n === 2 ? "بقي في الساعة متّسع لشيئين آخرين على هذا الجبل." : `بقي في الساعة متّسع لـ${n} أشياء أخرى على هذا الجبل.`,
+  mapEyebrow: "الخريطة الناقصة", gapTitle: n => `فجوة من ${n} خطوات`,
+  watch: "راقب الخريطة، ثم أعد المسار.", yourTurn: "دورك الآن.",
+  works: "نجح الأمر", worksB1: "تُغلق الفجوة وتصعد أعلى قليلًا.", worksB2: "ثم تومض الخريطة. فجوة أخرى، أعلى، وأطول قليلًا من السابقة.",
+  almost: "تقريبًا", almostB1: "تعرف ما يجب أن يفعله الممر، وترى شكل الحل.", almostB2: "لكنك لا ترى بعد كيف تصل إليه.",
+  lanternEyebrow: "فانوس الفرص", pickSpark: "اختيار شرارة", pickSparkBody: "تبدو كلها متشابهة من هنا. لن تعرف إلى أين تقود إحداها إلا إذا تبعتها.", back: "رجوع",
+  ridgeT: "قمّة لم تكن تراها", ridgeB1: "هذه تقود إلى مكان ما. ينفتح الممر على حافة مرتفعة فوق نقطة بدايتك بكثير.", ridgeB2: "ما كنت لتجدها من الأسفل أبدًا.",
+  nowhereT: "إلى لا مكان", nowhereB1: "تتبع الشرارة حول كتف الجبل، فتخبو عند حافة جرف.", nowhereB2: "لم تقد إلى شيء، ومع ذلك كلّفك الصعود.",
+  eveT: "المساء على الجبل", eveGood: "وصلت أعلى مما توقعت.", eveLess: "لم تصل إلى الحدّ الذي تمنيته، لكنك وصلت أبعد مما كنت عليه هذا الصباح.",
+  s2Quote: "أحيانًا أفهم ما أحتاج إلى تعلّمه، لكنني لا أرى الحل بعد. أن تعرف ما يجب فعله شيء، وأن تعرف كيف تفعله شيء آخر.",
+  sparkAria: i => `شرارة ${i}`,
+  thread: "على امتداد الخيط", msgArrives: "وصلت رسالة", whatDo: "ماذا يفعل المسافر؟",
+  m1q: "هل أنت بخير؟ تبدو بعيدًا اليوم.",
+  m1a: "قول «أنا بخير»", m1aSub: "سريع. لا شيء يحتاج إلى شرح.", m1aMe: "أنا بخير.", m1aHer: "حسنًا.", m1aSys: "تنتهي المحادثة بسرعة، وتبقى هي تخمّن ما الخطب.",
+  m1b: "شرح ما يحدث", m1bSub: "يتطلب جهدًا لإيجاد الكلمات.", m1bMe: "ليس تمامًا. قضيت اليوم عالقًا في شيء أكاد أفهمه، ولا أتوقف عن التفكير في عمل قد لا يأتي. الأمر ليس بسببك، رأسي ممتلئ فقط.", m1bHer: "شكرًا لأنك أخبرتني. لم أكن أعرف أن الأمر بهذا الحجم.", m1bSys: "صار لديها سياق، وتستطيع أن تردّ بتفهّم.",
+  m1c: "طلب الحديث بعد استراحة قصيرة", m1cSub: "وقت لترتيب الأفكار، ووعد يجب الوفاء به.", m1cMe: "هل أستطيع الاتصال بك بعد قليل؟ أريد أن أشرح لك كما يجب، أحتاج فقط دقيقة لأصفّي ذهني.", m1cHer: "حسنًا. سأكون هنا.", m1cSys: "عليك أن تفي بوعدك.",
+  toShelter: "الذهاب إلى مكان الاستراحة",
+  m2q: "سكتّ مرة أخرى. هل فعلت شيئًا؟",
+  m2p: "الوفاء بالوعد: الاتصال بها الآن", m2pSub: "قلت إنك ستفعل.", m2pMe: "لا، أبدًا. قلت إنني سأشرح، وها أنا أشرح. أخذ الجبل كل شيء مني اليوم، وكانت الورشة فارغة. أنا متعب، لكنني هنا.", m2pHer: "سعيدة أنك اتصلت. شكرًا لأنك عدت إلى الأمر.", m2pSys: "وفيت بوعدك، وهذا ما أعطاه قيمته.",
+  m2b: "إخبارها أن الأمر ليس بسببها، ولماذا", m2bSub: "أصعب من كلمة واحدة، وأوضح أيضًا.", m2bMe: "الأمر ليس بسببك أبدًا. لم يأتِ أحد إلى الورشة اليوم، وتعبت من بذل كل هذا الجهد مقابل القليل. لكنني ما زلت هنا.", m2bHer: "وأنا هنا أيضًا. أخبرني أكثر حين تستطيع.", m2bSys: "لا تحتاج أن تتساءل إن كان الأمر بسببها.",
+  m2a: "قول «لا، لا شيء»", m2aSub: "يوفّر الطاقة للطريق.", m2aMe: "لا، لا شيء.", m2aHer: "...حسنًا.", m2aSys: "كلمة «لا شيء» لا تخبرها أن الأمر ليس بسببها.", m2aPromise: "المكالمة التي وعدت بها لم تحدث.",
+  shEyebrow: "مكان استراحة", shTitle: "الملجأ",
+  shB1: "ملجأ حجري صغير بجانب الطريق. يمكنك أن تفعل شيئًا واحدًا هنا قبل أن تكمل.",
+  shB2: "اترك شيئًا، أو استعد شيئًا، أو توقف فقط. لا شيء يُترك هنا يضيع.",
+  shNote: "الخيط والساعة لا يُنزعان.",
+  setDown: n => `ترك ${n} هنا`, pickUp: n => `استعادة ${n}`, waited: "كان ينتظرك.",
+  packMinus: w => `الحقيبة −${w}`, packPlus: w => `الحقيبة +${w}`,
+  hint: { laptop: "تقلّ كلفة الأفعال الصعبة، وتبقى ممرات الخريطة هنا معها.", lantern: "أشياء أقل لإبقائها مضاءة، وفرص أقل لمطاردتها.", ember: "طاقة أكثر للطريق، وعلى الورشة أن تنتظر." },
+  setDownDone: n => `تضع ${n} داخل الملجأ. سيكون في أمان هنا، وسيبقى لك حين تعود لأجله.`,
+  pickUpDone: n => `تعيد ${n} إلى الحقيبة. كان في المكان الذي تركته فيه تمامًا.`,
+  rest: "الاستراحة قليلًا", restSub: "الاحتفاظ بكل شيء، مع التقاط الأنفاس أولًا.", restDone: "تجلس مسندًا ظهرك إلى الحجر حتى تهدأ أنفاسك.",
+  hold: "الإمساك بالخيط", holdSub: "إيقاف الرحلة قليلًا لإعادة التواصل.", holdCost: "+2 طاقة · يتوهّج الخيط أكثر",
+  holdDone: "تمسك بالخيط، فيأتيك صوتها من الطرف الآخر: «احكِ لي عن يومك.» فتحكي. ولا تدري كيف، لكن الحقيبة صارت أخف.",
+  backOnRoad: "العودة إلى الطريق",
+  s3: "الثالث · الورشة تحت المطر", s3short: "الورشة تحت المطر", s3Title: "ورشة صغيرة",
+  s3b1: "يبدأ المطر بالهطول. بجانب الطريق ورشة صغيرة: طاولة، ومطحنة، ولافتة رسمتها بنفسك.",
+  s3bEmber: "تدفأ الجمرة في حقيبتك. يمكنك أن تصنع شيئًا جيدًا هنا.",
+  s3bNoEmber: "الجمرة ما زالت في الملجأ. الورشة باردة، لكن الباب مفتوح.",
+  s3b3: "المؤن على الرفوف قليلة، ولم يدخل أحد بعد.", goInside: "الدخول",
+  improve: "تحسين ما تصنعه", improveSub: "بذل كل ما لديك في الحرفة.", improveNo: "الجمرة في الملجأ.",
+  craftT1: "شيء تفخر به", craftT2: "أفضل من ذي قبل", craftB1: "تعمل حتى يصبح كما يجب: الطحن، والحرارة، والتوقيت.", craftB2: "يمكنك أن تقف خلف هذا في أي مكان.", craftRain: "المطر ما زال يهطل، والشارع ما زال فارغًا.",
+  customers: "البحث عن زبائن", customersSub: "الوقوف تحت المطر ودعوة الناس للدخول.",
+  hitT: "أحدهم يتوقف", hitB1: "يدخل أحدهم هربًا من المطر. يتذوّق، ويبتسم، ويشتري كوبًا.", hitB2: "ليس كافيًا بعد. لكنه حقيقي.",
+  missT: "تمرّ المظلات", missB1: "تقف تحت المظلة وتنادي المارّة.", missB2: "لم يتوقف أحد اليوم. فعلت كل شيء كما يجب وبقي الشارع فارغًا.",
+  leave: "المغادرة والتقدّم في مكان آخر", leaveSub: "ستبقى الورشة هنا.", leaveCost: "يستهلك ما تبقّى من اليوم",
+  leaveT: "يُغلق الباب", leaveB: "تغلق الباب وتعود إلى الطريق. ستعود ومعك أكثر مما لديك الآن.",
+  leftToday: n => n === 2 ? "بقي شيئان اليوم" : "بقي شيء واحد اليوم", twoNotThree: "هناك وقت لاثنين من هذه، لا للثلاثة.",
+  closingT: "الإغلاق", came: n => n === 0 ? "لم يدخل أحد اليوم." : n === 1 ? "دخل شخص واحد اليوم." : "دخل شخصان اليوم.",
+  s3Quote: "أستطيع أن أبذل أفضل ما لديّ ومع ذلك لا أحصل على النتيجة التي أحتاجها. أحيانًا لا يكون التحدي في العمل وحده، بل في إيجاد طريقة تجعل العمل مستدامًا.",
+  s4: "الرابع · جسر السماءين", s4short: "جسر السماءين", s4Title: "الجسر",
+  s4b1: "جسر فوق وادٍ عميق. على الجانب الآخر، شخص يمسك بالطرف الآخر من الخيط.",
+  s4bLantern: "خلفك، الفانوس يرتجف، والممر الذي وجدته على الجبل بدأ ينغلق.",
+  s4bNoLantern: "خلفك، الممر الذي وجدته على الجبل بدأ ينغلق.",
+  s4b3: "لا تستطيع أن تفعل الأمرين الآن.",
+  work: "مواصلة العمل", workSub: "إنقاذ الممر ما دام ذلك ممكنًا.",
+  cross: "عبور الجسر الآن", crossSub: "الذهاب إليها، وترك الممر.",
+  msg: "إرسال رسالة والاتفاق على موعد", msgSub: "قول ما يحدث، ووضع خطة ستفي بها.",
+  workT: "تبقى", workB1: "تستدير وتعمل حتى يصمد الممر ويستقر الفانوس.", workB2: "على الجانب الآخر من الجسر، هي تنتظر. الخيط لا ينقطع، لكنها لا تعرف لماذا لم تأتِ.",
+  crossT: "تعبر", crossB1: "لبعض الوقت، يهدأ الوادي ولا تحمل شيئًا على الإطلاق.", crossB2: "خلفك، ينطفئ الفانوس وينغلق الممر. ستكون هناك ممرات أخرى، لكن ليس هذا.",
+  msgT: "تخبرها", msgB1: "ترسل: «الفانوس يخبو وأحتاج أن أُنهي هذا. هل نلتقي على قمة التلّ الليلة؟ سأكون هناك.»", msgB2: "تجيب: «سأكون هناك.»", msgB3: "يصمد الفانوس بما يكفي تمامًا.",
+  s4Quote: "حين يمتلئ ذهني، قد يكون لديّ في لحظة ما أقل مما أتمنى أن أعطيه. هذا لا يعني أنكِ أقل أهمية عندي. لكن عليّ مع ذلك أن أخبرك بما يحدث بدل أن أتركك تخمّنين.",
+  toHill: "السير إلى التل الأخير",
+  s5: "الخامس · الضوء خلف الوادي", s5short: "الضوء خلف الوادي", s5Title: "التلّ",
+  s5b1: "ينفتح الوادي تحتك. المدينة أقرب مما بدت من الطريق.",
+  s5All: "حملت كل شيء طوال الطريق.",
+  s5Carry: (c, l, J) => `${c.length ? `تحمل ${J(c)}.` : "لا تحمل سوى الخيط والساعة."} وفي الملجأ ينتظرك ${J(l)}.`,
+  s5Msg: "أحدهم ينتظر في القمة، في الموعد الذي قلت إنكما ستلتقيان فيه بالضبط.", s5Cross: "مشت معك الجزء الأخير من الطريق.", s5Work: "أنت وحدك في القمة. الخيط ما زال هناك، ممتدًا عبر الوادي.",
+  lookOut: "التطلّع إلى الضوء",
+  endingEyebrow: k => `النهاية ${{ A: "أ", B: "ب", C: "ج" }[k]}`, madeIt: "وصلت إلى التل. تطلّب ذلك جهدًا حقيقيًا، أيًّا كانت الطريقة التي وصلت بها.",
+  endings: {
+    A: { name: "ما زلت تحمل", body: ["وصلت وأنت تحمل كل شيء تقريبًا.", "العزيمة أوصلتك إلى هنا. لكن محاولة فعل كل شيء دون توقف جعلت كل خطوة أثقل مما ينبغي."] },
+    B: { name: "الأشياء التي يمكننا وضعها جانبًا", body: ["اخترت ما يحتاجك الآن وما يمكنه الانتظار.", "ما تركته خلفك لم يُهمَل. أن تضع شيئًا جانبًا لبعض الوقت ليس كأن تستسلم."] },
+    C: { name: "الطريق الذي نتشاركه", body: ["قلت ما كان يحدث بدل أن تتركها تخمّن، وأفسحت لها مكانًا في الطريق.", "لم تحمل هي حقيبتك. لكن أن تكون مفهومًا جعل الطريق أخفّ، رغم أن الحمل نفسه بقي على ظهرك."] }
+  },
+  tally1: "خطوات إلى الأمام في الممر", tally2: "مرات قلت فيها ما يحدث", tally3: "مرات وضعت فيها شيئًا أو استرحت",
+  readLast: "قراءة السطر الأخير",
+  finalQuote: "لا أحتاج أن تحملي حقيبتي عنّي. أريدكِ أن تفهمي لماذا يبدو الطريق ثقيلًا أحيانًا، ولماذا أواصل المشي رغم ذلك.",
+  oneMore: "شيء أخير", forYou: "إليكِ", familiarQ: "أيّ مشهد بدا لكِ مألوفًا أكثر؟", tellMe: "أخبريني أيّها، ولماذا. أحب أن أسمع ذلك.",
+  sendMsg: n => `«${n}» كان المشهد الأكثر ألفة لي. هل يمكننا أن نتحدث عنه؟`,
+  copy: "نسخ", copied: "تم النسخ", selected: "تم التحديد", again: "خوض الرحلة مجددًا", msgAria: "رسالة للإرسال"
+}
+};
+const LANGS = [["en", "English"], ["es", "Español"], ["ar", "العربية"]];
+let lang = "en", L = T.en;
+function setLang(l) {
+  if (!T[l]) l = "en";
+  lang = l; L = T[l];
+  document.documentElement.lang = l;
+  document.documentElement.dir = l === "ar" ? "rtl" : "ltr";
+  document.title = L.title;
+  document.getElementById("lbEnergy").textContent = L.energy;
+  document.getElementById("lbPack").textContent = L.pack;
+  document.getElementById("lbTime").textContent = L.timeLeft;
+  try { localStorage.setItem("ttic-lang", l); } catch (e) {}
+  try { history.replaceState(null, "", "#" + l); } catch (e) {}
+}
+const sceneNames = () => [L.s1.split(" · ")[1], L.s2short, L.s3short, L.s4short, L.s5short];
+const nm = k => L.q(L.items[k].name);
+
+/* ---------- Items ---------- */
+const ITEMS = {
+  laptop: { w: 2, settable: true }, lantern: { w: 1, settable: true }, ember: { w: 2, settable: true },
+  thread: { w: 0, settable: false }, clock: { w: 1, settable: false }
+};
+const TINT = { laptop: "#8fb8ff", lantern: "#f2d27a", ember: "#ff9a5a", thread: "#e9c46a", clock: "#c9c0e0" };
+const ICON = {
+  laptop: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="10" rx="1.5"/><path d="M2 18.5h20"/><path d="M7.5 12l2.5-3 2 2 3-3.5" stroke-dasharray="1.5 1.5"/></svg>',
+  lantern: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4a3 3 0 0 1 6 0"/><path d="M8 6h8"/><rect x="7" y="6" width="10" height="13" rx="2"/><path d="M12 10c1.2 1.4 1.6 2.4 1.6 3.3a1.6 1.6 0 0 1-3.2 0c0-.9.4-1.9 1.6-3.3z"/><path d="M6 21h12"/></svg>',
+  ember: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c2 4 6 6 6 11a6 6 0 0 1-12 0c0-3 2-5 3-7 .8 1.6 1.8 2.6 3 3 0-3-1-5 0-7z"/></svg>',
+  thread: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 16c3-6 6 2 9-4s6 2 9-4"/><circle cx="3" cy="16" r="1.4" fill="currentColor"/><circle cx="21" cy="8" r="1.4" fill="currentColor"/></svg>',
+  clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 4.5v1.5M19.5 12H18M12 19.5V18M4.5 12H6"/></svg>'
+};
+
+/* ---------- State ---------- */
+let S;
+function resetState() {
+  S = {
+    energy: 10, maxE: 10, time: 0, maxT: 0,
+    carried: { laptop: false, lantern: false, ember: false, thread: false, clock: false },
+    ground: [], shelter: [], setDown: 0, rested: 0,
+    comms: 0, connection: 2, promise: false, promiseKept: false,
+    progress: 0, craft: 0, customers: 0, bridge: null,
+    lanternFade: 0, herX: null, walking: false, fromHer: 0
+  };
+}
+resetState();
+const burden = () => Object.keys(S.carried).reduce((n, k) => n + (S.carried[k] ? ITEMS[k].w : 0), 0);
+const heavy = () => burden() >= 5;
+const ecost = base => base + (heavy() ? 1 : 0);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const cost = (base, t) => L.cost(ecost(base), heavy(), t);
+function giveE(n) { const before = S.energy; S.energy = Math.min(S.maxE, S.energy + n); S.fromHer += S.energy - before; }
+function spend(e, t) { S.energy = clamp(S.energy - e, 0, S.maxE); S.time = Math.max(0, S.time - (t || 0)); }
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ---------- UI helpers ---------- */
+const panel = document.getElementById("panel");
+const hud = document.getElementById("hud");
+const sheet = document.getElementById("sheet");
+
+let viewToken = 0;
+function view({ eyebrow, title, big, tagline, body = [], html = "", quote, bigQuote, note, choices = [], reveal }) {
+  const token = ++viewToken;
+  let head = "";
+  if (eyebrow) head += `<p class="eyebrow">${eyebrow}</p>`;
+  if (big) head += `<h1>${big}</h1>`;
+  if (title) head += `<h2>${title}</h2>`;
+  if (tagline) head += `<p class="tagline">${tagline}</p>`;
+  const beats = body.map(p => `<p>${p}</p>`);
+  if (quote) beats.push(`<blockquote>${quote}</blockquote>`);
+  let tail = html;
+  if (bigQuote) tail += `<blockquote class="big">${bigQuote}</blockquote>`;
+  if (note) tail += `<p class="note">${note}</p>`;
+  tail += `<div class="choices">` + choices.map((c, i) =>
+    `<button class="choice${c.primary ? " primary" : ""}" data-i="${i}"${c.disabled ? " disabled" : ""}>` +
+    `<span class="c-label">${c.label}</span>` +
+    (c.sub && (c.keep || c.disabled) ? `<span class="c-sub">${c.sub}</span>` : "") +
+    (c.cost ? `<span class="c-cost">${c.cost}</span>` : "") + `</button>`).join("") + `</div>`;
+
+  const animate = () => { panel.scrollTop = 0; panel.classList.remove("enter"); void panel.offsetWidth; panel.classList.add("enter"); };
+  const bindChoices = () => panel.querySelectorAll(".choice").forEach(b => b.onclick = () => {
+    const c = choices[+b.dataset.i];
+    if (!c.disabled) c.onPick();
+  });
+  const dots = i => `<span class="dots">${beats.map((_, j) => `<span class="${j <= i ? "on" : ""}"></span>`).join("")}</span>`;
+
+  if (beats.length <= 1 || big) {
+    panel.onclick = null;
+    panel.innerHTML = head + beats.join("") + tail;
+    bindChoices(); animate();
+  } else {
+    let i = 0;
+    const show = () => {
+      if (token !== viewToken) return;
+      const last = i === beats.length - 1;
+      panel.innerHTML = head + `<div class="beat">${beats[i]}</div>` +
+        (last ? tail : `<div class="next-row">${dots(i)}<button class="next">${L.next}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>`);
+      if (last) { panel.onclick = null; bindChoices(); }
+      else panel.onclick = () => { i++; show(); };
+      animate();
+    };
+    show();
+  }
+  if (reveal) {
+    const later = [...panel.querySelectorAll(".chat > .bubble, .chat > .sys")].slice(1);
+    const ch = panel.querySelector(".choices");
+    later.forEach(e => e.hidden = true);
+    if (ch) ch.hidden = true;
+    const gap = reduced ? 300 : 1000;
+    [...later, ch].filter(Boolean).forEach((e, k) => setTimeout(() => { if (token === viewToken) e.hidden = false; }, gap * (k + 1)));
+  }
+  updateHUD();
+}
+function outcome({ eyebrow, title, body, note, then, label }) {
+  view({ eyebrow, title, body, note, choices: [{ label: label || L.cont, primary: true, onPick: () => proceed(then) }] });
+}
+function proceed(fn) {
+  if (S.energy <= 0) {
+    S.rested++;
+    const her = S.connection >= 3;
+    if (her) { S.energy = 0; giveE(5); } else S.energy = 3;
+    view({ eyebrow: L.oeEyebrow, title: her ? L.oeHerTitle : L.oeTitle, body: her ? [L.oeBody, L.oeHerBody] : [L.oeBody], note: L.plusE(her ? 5 : 3),
+      choices: [{ label: L.getUp, primary: true, onPick: fn }] });
+  } else fn();
+}
+function updateHUD() {
+  hud.hidden = scene === "title";
+  const ep = document.getElementById("energyPips");
+  ep.innerHTML = Array.from({ length: S.maxE }, (_, i) => `<span class="pip${i < S.energy ? " on" : ""}"></span>`).join("");
+  ep.setAttribute("aria-label", `${S.energy} / ${S.maxE}`);
+  const b = burden();
+  const pp = document.getElementById("packPips");
+  pp.innerHTML = Array.from({ length: 6 }, (_, i) => `<span class="pip${i < b ? " on" : ""}"></span>`).join("");
+  pp.classList.toggle("heavy", heavy());
+  pp.setAttribute("aria-label", `${b} / 6`);
+  document.getElementById("timeStat").hidden = !S.maxT;
+  document.getElementById("timeVal").textContent = `${S.time} / ${S.maxT}`;
+  const inv = document.getElementById("inv");
+  const keys = Object.keys(S.carried).filter(k => S.carried[k]);
+  inv.innerHTML = keys.map(k => `<button style="--tint:${TINT[k]}" data-k="${k}" aria-label="${L.items[k].name}">${ICON[k]}</button>`).join("");
+  inv.querySelectorAll("button").forEach(b => b.onclick = () => openItem(b.dataset.k));
+}
+function openItem(k) {
+  const it = L.items[k];
+  sheet.innerHTML = `<div class="card" role="dialog" aria-label="${it.name}"><p class="eyebrow">${L.itemEyebrow(it.tag, ITEMS[k].w)}</p><h3>${it.name}</h3><p>${it.desc}</p><p class="note">${it.fixed || L.settable}</p><button class="choice primary" id="closeSheet"><span class="c-label">${L.backToRoad}</span></button></div>`;
+  sheet.hidden = false;
+  const close = () => { sheet.hidden = true; };
+  document.getElementById("closeSheet").onclick = close;
+  sheet.onclick = e => { if (e.target === sheet) close(); };
+}
+
+/* ---------- Walking between scenes ---------- */
+function walk(next) {
+  const b = burden();
+  const light = b <= 3;
+  const near = S.connection >= 4;
+  S.maxT = 0; S.time = 0;
+  S.walking = true;
+  const dur = reduced ? 700 : 1700 + b * 400;
+  view({ eyebrow: L.walkEyebrow, title: L.walkTitle,
+    body: [b <= 2 ? L.walk1 : b <= 4 ? L.walk2 : L.walk3],
+    note: [light ? L.walkNote : "", near ? L.walkHer : ""].filter(Boolean).join("<br>") });
+  setTimeout(() => {
+    S.walking = false;
+    if (light) S.energy = Math.min(S.maxE, S.energy + 1);
+    if (near) giveE(1);
+    next();
+  }, dur);
+}
+
+/* ---------- Title ---------- */
+function titleScreen() {
+  resetState(); setScene("title");
+  const html = `<div class="langs" role="group" aria-label="${L.langLabel}">${LANGS.map(([k, n]) => `<button lang="${k}" data-l="${k}" class="${k === lang ? "sel" : ""}" aria-pressed="${k === lang}">${n}</button>`).join("")}</div>`;
+  view({ big: L.title, tagline: L.tagline, body: [L.intro], html,
+    choices: [{ label: L.start, primary: true, onPick: scene1 }] });
+  panel.querySelectorAll(".langs button").forEach(b => b.onclick = () => { setLang(b.dataset.l); titleScreen(); });
+}
+
+/* ---------- Scene 1: The Road Ahead ---------- */
+function scene1() {
+  resetState(); setScene("road");
+  S.ground = ["laptop", "lantern", "ember", "thread"];
+  view({ eyebrow: L.s1, title: L.s1Title, body: [L.s1b1, L.s1b2], quote: L.s1Quote,
+    choices: [{ label: L.startWalking, primary: true, onPick: () => pickup() }] });
+}
+function pickup(last) {
+  const done = S.ground.length === 0;
+  const html = '<div class="items">' + ["laptop", "lantern", "ember", "thread"].map(k => {
+    const got = S.carried[k];
+    return `<button class="item${got ? " got" : ""}" data-k="${k}"${got ? " disabled" : ""} style="--tint:${TINT[k]}"><span class="ico">${ICON[k]}</span><span><b>${L.items[k].name}</b><small>${got ? L.inPack : L.tapPick}</small></span></button>`;
+  }).join("") + "</div>";
+  const body = last ? [`<b>${L.items[last].name}</b> · ${L.items[last].tag}. ${L.items[last].desc}`] : [L.pickIntro];
+  view({ eyebrow: L.s1, title: done ? L.pickFull : L.pickTitle, body, html,
+    choices: done ? [{ label: L.keepWalking, primary: true, onPick: clockBeat }] : [] });
+  panel.querySelectorAll(".item").forEach(b => b.onclick = () => {
+    const k = b.dataset.k;
+    S.carried[k] = true;
+    S.ground = S.ground.filter(x => x !== k);
+    pickup(k);
+  });
+}
+function clockBeat() {
+  S.carried.clock = true;
+  view({ eyebrow: L.s1, title: L.clockTitle, body: [L.clockBody, L.items.clock.desc], note: L.clockNote(burden()),
+    choices: [{ label: L.toMountain, primary: true, onPick: () => walk(scene2) }] });
+}
+
+/* ---------- Scene 2: The Mountain of Almost ---------- */
+function scene2() {
+  setScene("mountain");
+  S.maxT = 4; S.time = 4; S.solved = 0; S.goodSpark = Math.floor(Math.random() * 3);
+  S.tried = []; S.easyTaken = false; S.ridge = false;
+  view({ eyebrow: L.s2, title: L.s2Title, body: [L.s2b1, L.s2b2],
+    choices: [{ label: L.startClimb, primary: true, onPick: mountainHub }] });
+}
+function mountainHub() {
+  if (S.time <= 0) return mountainEnd();
+  const choices = [{ label: S.solved ? L.nextGap : L.workPath, sub: S.solved ? L.nextGapSub : L.workPathSub, cost: cost(1, 1), onPick: puzzleStart }];
+  if (!S.easyTaken) choices.push({ label: L.easy, sub: L.easySub, cost: cost(1, 1),
+    onPick: () => { spend(ecost(1), 1); S.easyTaken = true; S.progress += 1;
+      outcome({ eyebrow: L.s2short, title: L.steadyT, body: [L.steadyB], then: mountainHub }); } });
+  if (S.tried.length < 3 && !S.ridge) choices.push({ label: L.spark, sub: L.sparkSub, cost: cost(2, 1), onPick: sparkPick });
+  choices.push({ label: L.stop, sub: L.stopSub, onPick: mountainEnd });
+  const busy = S.solved || S.easyTaken || S.tried.length;
+  view({ eyebrow: L.s2, title: busy ? L.stillClimbing : L.waysUp, body: [L.timeRoom(S.time)], choices });
+}
+const GLYPHS = ["{ }", "( )", "</>", "=>", ";", "[ ]"];
+function puzzleStart() {
+  spend(ecost(1), 1);
+  const len = Math.min(3 + S.solved, 6);
+  const seq = [];
+  while (seq.length < len) { const n = Math.floor(Math.random() * 6); if (n !== seq[seq.length - 1]) seq.push(n); }
+  const html = `<p class="puz-status" id="pz">${L.watch}</p><div class="stones">${GLYPHS.map((g, i) => `<button class="stone" data-i="${i}" disabled>${g}</button>`).join("")}</div>`;
+  view({ eyebrow: L.mapEyebrow, title: L.gapTitle(len), html });
+  const stones = [...panel.querySelectorAll(".stone")];
+  const status = document.getElementById("pz");
+  let i = 0;
+  const step = reduced ? 900 : 650;
+  const play = () => {
+    if (i >= seq.length) { stones.forEach(s => s.disabled = false); status.textContent = L.yourTurn; return; }
+    const s = stones[seq[i]];
+    s.classList.add("lit");
+    setTimeout(() => { s.classList.remove("lit"); i++; setTimeout(play, 180); }, step);
+  };
+  setTimeout(play, 600);
+  let pos = 0;
+  stones.forEach(s => s.onclick = () => {
+    const n = +s.dataset.i;
+    if (n === seq[pos]) {
+      s.classList.add("lit"); setTimeout(() => s.classList.remove("lit"), 220);
+      pos++;
+      if (pos === seq.length) {
+        stones.forEach(x => x.disabled = true);
+        S.solved++; S.progress += 1;
+        setTimeout(() => outcome({ eyebrow: L.mapEyebrow, title: L.works, body: [L.worksB1, L.worksB2], then: mountainHub }), 400);
+      }
+    } else {
+      s.classList.add("bad");
+      stones.forEach(x => x.disabled = true);
+      setTimeout(() => outcome({ eyebrow: L.mapEyebrow, title: L.almost, body: [L.almostB1, L.almostB2], then: mountainHub }), 500);
+    }
+  });
+}
+function sparkPick() {
+  const html = `<div class="sparks">${[0, 1, 2].map(i => `<button class="spark" data-i="${i}" aria-label="${L.sparkAria(i + 1)}"${S.tried.includes(i) ? " disabled" : ""}></button>`).join("")}</div>`;
+  view({ eyebrow: L.lanternEyebrow, title: L.pickSpark, body: [L.pickSparkBody], html,
+    note: cost(2, 1).replace(/<[^>]+>/g, ""), choices: [{ label: L.back, onPick: mountainHub }] });
+  panel.querySelectorAll(".spark").forEach(b => b.onclick = () => {
+    const i = +b.dataset.i;
+    spend(ecost(2), 1); S.tried.push(i);
+    if (i === S.goodSpark) {
+      S.ridge = true; S.progress += 3;
+      outcome({ eyebrow: L.lanternEyebrow, title: L.ridgeT, body: [L.ridgeB1, L.ridgeB2], then: mountainHub });
+    } else {
+      outcome({ eyebrow: L.lanternEyebrow, title: L.nowhereT, body: [L.nowhereB1, L.nowhereB2], then: mountainHub });
+    }
+  });
+}
+function mountainEnd() {
+  S.maxT = 0;
+  view({ eyebrow: L.s2, title: L.eveT, body: [S.progress >= 4 ? L.eveGood : L.eveLess], quote: L.s2Quote,
+    choices: [{ label: L.cont, primary: true, onPick: () => proceed(message1) }] });
+}
+
+/* ---------- Messages ---------- */
+function chat(lines) {
+  return `<div class="chat"><span class="chat-head">${L.msgArrives}</span>${lines.map(([who, text]) => who === "sys" ? `<span class="sys">${text}</span>` : `<div class="bubble ${who}">${text}</div>`).join("")}</div>`;
+}
+function message1() {
+  const q = L.m1q;
+  view({ eyebrow: L.thread, html: chat([["her", q]]), note: L.whatDo,
+    choices: [
+      { label: L.m1a, sub: L.m1aSub, onPick: () => {
+        S.connection = Math.max(0, S.connection - 1);
+        reply1([["her", q], ["me", L.m1aMe], ["her", L.m1aHer], ["sys", L.m1aSys]]); } },
+      { label: L.m1b, sub: L.m1bSub, cost: L.plusE(2), onPick: () => {
+        giveE(2); S.comms++; S.connection += 1;
+        reply1([["her", q], ["me", L.m1bMe], ["her", L.m1bHer], ["sys", L.m1bSys], ["sys", L.lighter]]); } },
+      { label: L.m1c, sub: L.m1cSub, cost: L.plusE(1), onPick: () => {
+        S.energy = Math.min(S.maxE, S.energy + 1); S.promise = true;
+        reply1([["her", q], ["me", L.m1cMe], ["her", L.m1cHer], ["sys", L.m1cSys]]); } }
+    ] });
+}
+function reply1(lines) {
+  view({ eyebrow: L.thread, html: chat(lines), reveal: true,
+    choices: [{ label: L.toShelter, primary: true, onPick: () => proceed(() => shelter(() => walk(scene3))) }] });
+}
+function message2() {
+  const q = L.m2q;
+  const choices = [];
+  if (S.promise) choices.push({ label: L.m2p, sub: L.m2pSub, cost: L.plusE(2), onPick: () => {
+    giveE(2); S.comms++; S.connection += 2; S.promiseKept = true;
+    reply2([["her", q], ["me", L.m2pMe], ["her", L.m2pHer], ["sys", L.m2pSys], ["sys", L.lighter]]); } });
+  else choices.push({ label: L.m2b, sub: L.m2bSub, cost: L.plusE(2), onPick: () => {
+    giveE(2); S.comms++; S.connection += 1;
+    reply2([["her", q], ["me", L.m2bMe], ["her", L.m2bHer], ["sys", L.m2bSys], ["sys", L.lighter]]); } });
+  choices.push({ label: L.m2a, sub: L.m2aSub, onPick: () => {
+    S.connection = Math.max(0, S.connection - 1);
+    const lines = [["her", q], ["me", L.m2aMe], ["her", L.m2aHer], ["sys", L.m2aSys]];
+    if (S.promise) lines.push(["sys", L.m2aPromise]);
+    reply2(lines); } });
+  view({ eyebrow: L.thread, html: chat([["her", q]]), note: L.whatDo, choices });
+}
+function reply2(lines) {
+  view({ eyebrow: L.thread, html: chat(lines), reveal: true,
+    choices: [{ label: L.toShelter, primary: true, onPick: () => proceed(() => shelter(() => walk(scene4))) }] });
+}
+
+/* ---------- Shelter ---------- */
+function shelter(next) {
+  const choices = [];
+  ["laptop", "lantern", "ember"].filter(k => S.carried[k]).forEach(k => choices.push({
+    label: L.setDown(nm(k)), sub: L.hint[k], keep: true, cost: L.packMinus(ITEMS[k].w),
+    onPick: () => { S.carried[k] = false; S.shelter.push(k); S.setDown++; shelterDone(next, L.setDownDone(nm(k))); } }));
+  S.shelter.forEach(k => choices.push({
+    label: L.pickUp(nm(k)), sub: L.waited, cost: L.packPlus(ITEMS[k].w),
+    onPick: () => { S.carried[k] = true; S.shelter = S.shelter.filter(x => x !== k); shelterDone(next, L.pickUpDone(nm(k))); } }));
+  choices.push({ label: L.rest, sub: L.restSub, cost: L.plusE(2),
+    onPick: () => { S.energy = Math.min(S.maxE, S.energy + 2); S.rested++; shelterDone(next, L.restDone); } });
+  choices.push({ label: L.hold, sub: L.holdSub, cost: L.holdCost,
+    onPick: () => { giveE(2); S.connection += 1; shelterDone(next, L.holdDone); } });
+  view({ eyebrow: L.shEyebrow, title: L.shTitle, body: [L.shB1, L.shB2], note: L.shNote, choices });
+}
+function shelterDone(next, text) {
+  outcome({ eyebrow: L.shEyebrow, title: L.shTitle, body: [text], then: next, label: L.backOnRoad });
+}
+
+/* ---------- Scene 3: The Workshop in the Rain ---------- */
+function scene3() {
+  setScene("workshop");
+  S.maxT = 2; S.time = 2;
+  view({ eyebrow: L.s3, title: L.s3Title, body: [L.s3b1, S.carried.ember ? L.s3bEmber : L.s3bNoEmber, L.s3b3],
+    choices: [{ label: L.goInside, primary: true, onPick: workshopHub }] });
+}
+function workshopHub() {
+  if (S.time <= 0) return workshopEnd();
+  const ember = S.carried.ember;
+  const choices = [
+    { label: L.improve, sub: ember ? L.improveSub : L.improveNo, cost: cost(2, 1), disabled: !ember,
+      onPick: () => { spend(ecost(2), 1); S.craft++;
+        outcome({ eyebrow: L.s3short, title: S.craft > 1 ? L.craftT2 : L.craftT1,
+          body: [S.craft > 1 ? L.craftB2 : L.craftB1, L.craftRain], then: workshopHub }); } },
+    { label: L.customers, sub: L.customersSub, cost: cost(2, 1),
+      onPick: () => { spend(ecost(2), 1);
+        const hit = Math.random() < 0.3 + 0.3 * S.craft;
+        if (hit) S.customers++;
+        outcome({ eyebrow: L.s3short, title: hit ? L.hitT : L.missT,
+          body: hit ? [L.hitB1, L.hitB2] : [L.missB1, L.missB2], then: workshopHub }); } },
+    { label: L.leave, sub: L.leaveSub, cost: L.leaveCost,
+      onPick: () => { S.time = 0; S.progress += 1;
+        outcome({ eyebrow: L.s3short, title: L.leaveT, body: [L.leaveB], then: workshopEnd }); } }
+  ];
+  view({ eyebrow: L.s3, title: L.leftToday(S.time), body: [L.twoNotThree], choices });
+}
+function workshopEnd() {
+  S.maxT = 0;
+  view({ eyebrow: L.s3, title: L.closingT, body: [L.came(S.customers)], quote: L.s3Quote,
+    choices: [{ label: L.cont, primary: true, onPick: () => proceed(message2) }] });
+}
+
+/* ---------- Scene 4: The Bridge of Two Skies ---------- */
+function scene4() {
+  setScene("bridge");
+  S.herX = 0.82; S.lanternFade = S.carried.lantern ? 1 : 0;
+  view({ eyebrow: L.s4, title: L.s4Title,
+    body: [L.s4b1, S.carried.lantern ? L.s4bLantern : L.s4bNoLantern, L.s4b3],
+    choices: [
+      { label: L.work, sub: L.workSub, cost: cost(2, 0), onPick: () => {
+        spend(ecost(2)); S.bridge = "work"; S.progress += 2; S.connection = Math.max(0, S.connection - 1); S.lanternFade = 0;
+        bridgeOut(L.workT, [L.workB1, L.workB2]); } },
+      { label: L.cross, sub: L.crossSub, cost: L.plusE(2), onPick: () => {
+        giveE(2); S.bridge = "cross"; S.connection += 2; S.progress = Math.max(0, S.progress - 1); S.lanternFade = 0; S.herX = 0.4;
+        bridgeOut(L.crossT, [L.crossB1, L.crossB2]); } },
+      { label: L.msg, sub: L.msgSub, cost: L.plusE(1), onPick: () => {
+        giveE(1); S.bridge = "message"; S.comms++; S.connection += 1; S.progress += 1; S.lanternFade = 0;
+        bridgeOut(L.msgT, [L.msgB1, L.msgB2, L.msgB3]); } }
+    ] });
+}
+function bridgeOut(title, body) {
+  view({ eyebrow: L.s4, title, body, quote: L.s4Quote,
+    choices: [{ label: L.toHill, primary: true, onPick: () => proceed(() => walk(scene5)) }] });
+}
+
+/* ---------- Scene 5 + endings ---------- */
+function scene5() {
+  setScene("hill");
+  S.herX = S.bridge === "work" ? null : 0.4;
+  const carried = ["laptop", "lantern", "ember"].filter(k => S.carried[k]).map(nm);
+  const left = S.shelter.map(nm);
+  const body = [L.s5b1, carried.length === 3 ? L.s5All : L.s5Carry(carried, left, L.join),
+    S.bridge === "message" ? L.s5Msg : S.bridge === "cross" ? L.s5Cross : L.s5Work];
+  view({ eyebrow: L.s5, title: L.s5Title, body, choices: [{ label: L.lookOut, primary: true, onPick: ending }] });
+}
+function ending() {
+  let key;
+  if (S.comms >= 2 && S.bridge !== "work") key = "C";
+  else if (S.setDown >= 1 || S.rested >= 1) key = "B";
+  else key = "A";
+  const E = L.endings[key];
+  const html = `<div class="tally"><div><b>${S.progress}</b><span>${L.tally1}</span></div><div><b>${S.comms}</b><span>${L.tally2}</span></div><div><b>${S.setDown + S.rested}</b><span>${L.tally3}</span></div></div>`;
+  view({ eyebrow: L.endingEyebrow(key), title: E.name, body: [L.madeIt, ...E.body], html,
+    choices: [{ label: L.cont, primary: true, onPick: threadScreen }] });
+}
+function threadScreen() {
+  S.connection = Math.max(S.connection, 4);
+  view({ eyebrow: L.items.thread.name, title: L.threadT,
+    body: [L.threadB1, S.fromHer > 0 ? L.threadB2(S.fromHer) : L.threadB2none], quote: L.threadQuote,
+    choices: [{ label: L.readLast, primary: true, onPick: finalLine }] });
+}
+function finalLine() {
+  view({ eyebrow: L.title, bigQuote: L.finalQuote,
+    choices: [{ label: L.oneMore, primary: true, onPick: letter }] });
+}
+function letter() {
+  const C = CONFIG[lang] || CONFIG.en;
+  const html = `<p class="letter">${C.note}</p><p class="sign">${C.signoff}</p>`;
+  view({ eyebrow: L.forYou, html, choices: [{ label: L.again, onPick: titleScreen }] });
+}
+
+/* ---------- World rendering ---------- */
+const PAL = {
+  title:    { top: "#120f2b", mid: "#2e2453", hor: "#a8606e", glow: "#f6c27a", h1: "#3a2d5e", h2: "#2a2148", h3: "#17122e", a1: 26, a2: 18, a3: 6, peak: 0, city: 0.25, house: 0, bridge: 0, rain: 0 },
+  road:     { top: "#120f2b", mid: "#30255a", hor: "#b0646f", glow: "#f6c27a", h1: "#3c2e60", h2: "#2a2149", h3: "#17122e", a1: 22, a2: 14, a3: 5, peak: 0, city: 0.2, house: 0, bridge: 0, rain: 0 },
+  mountain: { top: "#0e1029", mid: "#262c54", hor: "#6f6496", glow: "#f3c98a", h1: "#3b3a6b", h2: "#272852", h3: "#141631", a1: 30, a2: 22, a3: 7, peak: 1, city: 0, house: 0, bridge: 0, rain: 0 },
+  workshop: { top: "#0c1120", mid: "#1f2a44", hor: "#4a5874", glow: "#e8a860", h1: "#2c3854", h2: "#1f2840", h3: "#101828", a1: 16, a2: 10, a3: 4, peak: 0, city: 0, house: 1, bridge: 0, rain: 1 },
+  bridge:   { top: "#17112f", mid: "#3a2858", hor: "#c0717f", glow: "#f7c88a", h1: "#4a3466", h2: "#30234c", h3: "#1a1432", a1: 20, a2: 26, a3: 4, peak: 0, city: 0.15, house: 0, bridge: 1, rain: 0 },
+  hill:     { top: "#1b1842", mid: "#4b3472", hor: "#e2896f", glow: "#ffd59a", h1: "#5a3f78", h2: "#3a2a58", h3: "#1f1838", a1: 14, a2: 10, a3: 16, peak: 0, city: 1, house: 0, bridge: 0, rain: 0 }
+};
+let scene = "title", fromPal = PAL.title, toPal = PAL.title, mixT = 1;
+function currentPal() {
+  const t = mixT, o = {};
+  for (const k in toPal) {
+    const a = fromPal[k], b = toPal[k];
+    o[k] = typeof b === "number" ? a + (b - a) * t : mixHex(a, b, t);
+  }
+  return o;
+}
+function setScene(k) { fromPal = currentPal(); toPal = PAL[k]; mixT = 0; scene = k; if (k !== "bridge" && k !== "hill") S.herX = null; }
+function hex(c) {
+  if (c.startsWith("rgb")) return c.match(/\d+/g).map(Number);
+  const n = parseInt(c.slice(1), 16); return [n >> 16, (n >> 8) & 255, n & 255];
+}
+function mixHex(a, b, t) { const A = hex(a), B = hex(b); return `rgb(${A.map((v, i) => Math.round(v + (B[i] - v) * t)).join(",")})`; }
+function rgba(c, a) { const [r, g, b] = hex(c); return `rgba(${r},${g},${b},${a})`; }
+
+const cv = document.getElementById("world"), cx = cv.getContext("2d");
+let W = 0, H = 0;
+function resize() {
+  const d = Math.min(2, devicePixelRatio || 1);
+  W = cv.clientWidth; H = cv.clientHeight;
+  cv.width = Math.round(W * d); cv.height = Math.round(H * d);
+  cx.setTransform(d, 0, 0, d, 0, 0);
+}
+addEventListener("resize", resize);
+const stars = Array.from({ length: 90 }, () => ({ x: Math.random(), y: Math.random(), r: Math.random() * 1.2 + 0.3, p: Math.random() * 6 }));
+const drops = Array.from({ length: 140 }, () => ({ x: Math.random(), y: Math.random(), s: 0.6 + Math.random() * 0.6 }));
+
+let offset = 0, phase = 0, last = performance.now();
+function ridge(x, base, amp, seed, peak, peakX) {
+  let y = base - amp * (Math.sin(x * 0.006 + seed) * 0.6 + Math.sin(x * 0.017 + seed * 2.1) * 0.3 + Math.sin(x * 0.041 + seed * 3.7) * 0.1);
+  if (peak) { const d = (x - peakX) / (W * 0.16); y -= peak * Math.exp(-d * d); }
+  return y;
+}
+function layer(base, amp, seed, par, color, peak, peakXr) {
+  cx.beginPath(); cx.moveTo(0, H);
+  for (let x = 0; x <= W + 8; x += 8) cx.lineTo(x, ridge(x + offset * par, base, amp, seed, peak, W * peakXr + offset * par));
+  cx.lineTo(W, H); cx.closePath(); cx.fillStyle = color; cx.fill();
+}
+function figure(x, y, s, opts) {
+  const { walking, pack, lean, rim } = opts;
+  cx.save(); cx.translate(x, y); cx.rotate(lean);
+  const sw = walking ? Math.sin(phase) * 6 * s : 0;
+  const bob = walking ? Math.abs(Math.sin(phase)) * 1.5 * s : 0;
+  cx.translate(0, -bob);
+  cx.strokeStyle = "#0b0918"; cx.lineCap = "round"; cx.lineWidth = 4 * s;
+  cx.beginPath(); cx.moveTo(0, -26 * s); cx.lineTo(sw, 0); cx.moveTo(0, -26 * s); cx.lineTo(-sw, 0); cx.stroke();
+  if (pack) {
+    const pw = (5 + pack * 1.6) * s, ph = (12 + pack * 2.2) * s;
+    cx.fillStyle = "#151129"; cx.beginPath();
+    cx.roundRect ? cx.roundRect(-4 * s - pw, -50 * s, pw, ph, 3 * s) : cx.rect(-4 * s - pw, -50 * s, pw, ph);
+    cx.fill();
+    cx.strokeStyle = rgba(rim, 0.25); cx.lineWidth = 1; cx.stroke();
+  }
+  cx.fillStyle = "#0b0918"; cx.beginPath();
+  cx.moveTo(-5 * s, -26 * s); cx.lineTo(5 * s, -26 * s); cx.lineTo(4 * s, -52 * s); cx.lineTo(-4 * s, -52 * s); cx.closePath(); cx.fill();
+  cx.beginPath(); cx.arc(0.5 * s, -59 * s, 6 * s, 0, Math.PI * 2); cx.fill();
+  cx.strokeStyle = rgba(rim, 0.35); cx.lineWidth = 1; cx.stroke();
+  cx.restore();
+}
+function glow(x, y, r, color, a) {
+  const g = cx.createRadialGradient(x, y, 0, x, y, r);
+  g.addColorStop(0, rgba(color, a)); g.addColorStop(1, rgba(color, 0));
+  cx.fillStyle = g; cx.beginPath(); cx.arc(x, y, r, 0, Math.PI * 2); cx.fill();
+}
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (mixT < 1) mixT = Math.min(1, mixT + dt / 1.2);
+  const P = currentPal(), b = burden();
+  if (S.walking) { offset += dt * (90 / (1 + b * 0.18)); phase += dt * (7 / (1 + b * 0.12)); }
+  const t = now / 1000;
+  const pr = panel.getBoundingClientRect(), cr = cv.getBoundingClientRect();
+  const gy = clamp(Math.min(H * 0.58, pr.top - cr.top - 26), H * 0.3, H * 0.62);
+  const hy = gy * 0.6;
+  const s = clamp(H / 760, 0.75, 1.25);
+
+  const sky = cx.createLinearGradient(0, 0, 0, gy);
+  sky.addColorStop(0, P.top); sky.addColorStop(0.55, P.mid); sky.addColorStop(1, P.hor);
+  cx.fillStyle = sky; cx.fillRect(0, 0, W, H);
+  stars.forEach(st => {
+    const a = (reduced ? 0.6 : 0.4 + 0.4 * Math.sin(t * 1.3 + st.p)) * (1 - P.rain * 0.8);
+    cx.fillStyle = `rgba(255,246,230,${a})`; cx.beginPath(); cx.arc(st.x * W, st.y * hy * 0.95, st.r, 0, Math.PI * 2); cx.fill();
+  });
+  const lx = W * 0.72, ly = hy + 4;
+  glow(lx, ly, Math.max(W, H) * 0.42, P.glow, 0.32);
+  glow(lx, ly, 26 * s, P.glow, 0.9);
+  cx.fillStyle = rgba(P.glow, 1); cx.beginPath(); cx.arc(lx, ly, 3.2 * s, 0, Math.PI * 2); cx.fill();
+  if (P.city > 0.01) {
+    let seed = 7;
+    const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+    for (let x = lx - 110 * s; x < lx + 110 * s; x += 9 * s) {
+      const hgt = (6 + rnd() * 26) * s * (1 - Math.abs(x - lx) / (130 * s));
+      cx.fillStyle = rgba(P.h1, P.city); cx.fillRect(x, ly - hgt, 8 * s, hgt + 6);
+      if (rnd() > 0.5) { cx.fillStyle = rgba(P.glow, 0.8 * P.city); cx.fillRect(x + 3 * s, ly - hgt * 0.6, 1.6 * s, 1.6 * s); }
+    }
+  }
+  layer(hy + 10, P.a1, 1.3, 0.12, P.h1, P.peak * (gy - hy) * 1.4, 0.48);
+  layer(hy + (gy - hy) * 0.5, P.a2, 4.1, 0.3, P.h2, 0, 0);
+  layer(gy + 6 * s, P.a3, 8.7, 0.7, P.h3, 0, 0);
+
+  const tx = W * 0.26;
+  const ty = ridge(tx + offset * 0.7, gy + 6 * s, P.a3, 8.7, 0, 0);
+
+  if (P.bridge > 0.01) {
+    const x0 = W * 0.48, x1 = W * 0.76;
+    const ch = cx.createLinearGradient(0, ty, 0, H);
+    ch.addColorStop(0, rgba(P.h2, P.bridge)); ch.addColorStop(1, rgba(P.top, P.bridge));
+    cx.fillStyle = ch; cx.fillRect(x0, ty - 2, x1 - x0, H);
+    cx.strokeStyle = rgba("#0b0918", P.bridge); cx.lineWidth = 3 * s;
+    cx.beginPath(); cx.moveTo(x0 - 10, ty); cx.quadraticCurveTo((x0 + x1) / 2, ty + 18 * s, x1 + 10, ty); cx.stroke();
+    cx.lineWidth = 1.2; cx.beginPath(); cx.moveTo(x0 - 10, ty - 14 * s); cx.quadraticCurveTo((x0 + x1) / 2, ty + 4 * s, x1 + 10, ty - 14 * s); cx.stroke();
+    for (let i = 0; i <= 8; i++) {
+      const u = i / 8, bx = x0 + (x1 - x0) * u, by = ty + 18 * s * 4 * u * (1 - u) * 0.5;
+      cx.beginPath(); cx.moveTo(bx, by); cx.lineTo(bx, by - 13 * s); cx.stroke();
+    }
+  }
+  if (P.house > 0.01) {
+    const hx = W * 0.6, hw = 54 * s, hh = 38 * s, hb = ty + 2;
+    cx.globalAlpha = P.house;
+    cx.fillStyle = "#0e1220"; cx.fillRect(hx, hb - hh, hw, hh);
+    cx.beginPath(); cx.moveTo(hx - 6 * s, hb - hh); cx.lineTo(hx + hw / 2, hb - hh - 20 * s); cx.lineTo(hx + hw + 6 * s, hb - hh); cx.fill();
+    const lit = (S.carried.ember ? 0.35 : 0.08) + 0.25 * S.craft;
+    glow(hx + 15 * s, hb - 20 * s, 30 * s, "#ffb066", lit * 0.6);
+    cx.fillStyle = rgba("#ffb066", Math.min(1, lit + 0.1)); cx.fillRect(hx + 9 * s, hb - 26 * s, 12 * s, 10 * s);
+    cx.fillStyle = "#1a1f33"; cx.fillRect(hx + 32 * s, hb - 22 * s, 11 * s, 22 * s);
+    for (let i = 0; i < S.customers; i++) figure(hx + hw + 14 * s + i * 12 * s, hb, s * 0.75, { rim: "#ffb066", lean: 0 });
+    cx.globalAlpha = 1;
+  }
+
+  if (scene === "road") S.ground.forEach((k, i) => {
+    const ox = W * (0.42 + i * 0.13), oy = ty - 22 * s + Math.sin(t * 2 + i) * 4 * s;
+    glow(ox, oy, 22 * s, TINT[k], 0.5);
+    cx.fillStyle = TINT[k]; cx.beginPath(); cx.arc(ox, oy, 3.5 * s, 0, Math.PI * 2); cx.fill();
+  });
+
+  let herPos = null;
+  if (S.herX != null && (scene === "bridge" || scene === "hill")) {
+    const hx = W * S.herX;
+    const hyy = ridge(hx + offset * 0.7, gy + 6 * s, P.a3, 8.7, 0, 0);
+    herPos = [hx, hyy];
+    glow(hx, hyy - 30 * s, 40 * s, "#e9c46a", 0.35);
+    cx.save(); cx.translate(hx, 0); cx.scale(-1, 1); cx.translate(-hx, 0);
+    figure(hx, hyy, s * 0.95, { rim: "#e9c46a", lean: 0 });
+    cx.restore();
+  }
+
+  if (S.carried.thread) {
+    const sx = tx - 8 * s, sy = ty - 44 * s;
+    const ex = herPos ? herPos[0] - 4 * s : lx, ey = herPos ? herPos[1] - 40 * s : ly;
+    const a = clamp(0.18 + S.connection * 0.11, 0.12, 0.9);
+    cx.strokeStyle = rgba("#e9c46a", a); cx.lineWidth = 1 + S.connection * 0.15;
+    cx.beginPath(); cx.moveTo(sx, sy);
+    cx.quadraticCurveTo((sx + ex) / 2, Math.min(sy, ey) - 40 * s + Math.sin(t * 0.9) * 8 * s, ex, ey); cx.stroke();
+  }
+  const lean = Math.min(0.14, b * 0.016) + (S.walking ? 0.03 : 0);
+  if (S.carried.lantern) {
+    let la = scene === "bridge" && S.bridge == null ? 0.25 + 0.25 * Math.abs(Math.sin(t * 7) * Math.sin(t * 2.3)) : 0.55;
+    if (scene === "bridge" && S.bridge === "cross") la = 0.05;
+    glow(tx + 11 * s, ty - 30 * s, 30 * s, "#f2d27a", la);
+  }
+  figure(tx, ty, s, { walking: S.walking, pack: scene === "title" ? 0 : b, lean, rim: P.glow });
+  if (S.carried.ember) glow(tx - 12 * s, ty - 38 * s, 9 * s, "#ff9a5a", 0.8);
+  if (S.carried.laptop) glow(tx - 14 * s, ty - 46 * s, 7 * s, "#8fb8ff", 0.7);
+
+  if (P.rain > 0.01) {
+    cx.strokeStyle = `rgba(190,205,235,${0.35 * P.rain})`; cx.lineWidth = 1;
+    cx.beginPath();
+    drops.forEach(d => {
+      if (!reduced) { d.y += dt * d.s * 1.1; if (d.y > 1) { d.y = 0; d.x = Math.random(); } }
+      const x = d.x * W, y = d.y * H;
+      cx.moveTo(x, y); cx.lineTo(x - 2, y + 12 * d.s);
+    });
+    cx.stroke();
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ---------- Boot ---------- */
+function initialLang() {
+  const h = location.hash.slice(1);
+  if (T[h]) return h;
+  try { const s = localStorage.getItem("ttic-lang"); if (T[s]) return s; } catch (e) {}
+  return "en";
+}
+addEventListener("hashchange", () => {
+  const h = location.hash.slice(1);
+  if (T[h] && h !== lang) { setLang(h); if (scene === "title") titleScreen(); }
+});
+setLang(initialLang());
+resize();
+titleScreen();
+requestAnimationFrame(frame);
+</script>
+
+</html>
